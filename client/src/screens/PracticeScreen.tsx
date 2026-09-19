@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { wordsFromTranscript } from "../lib/transcript";
 import type { CompletedSession, LectureMaterial } from "../types";
 
 interface Props {
@@ -17,8 +18,9 @@ export default function PracticeScreen({ material, stream, onFinish }: Props) {
 
   const finish = () => {
     stream.getTracks().forEach((t) => t.stop());
-    // TODO(live): real transcript and duration.
-    onFinish({ transcript: "So one plus two is four, which is why the loop runs again.", durationSec: 0 });
+    // TODO(live): real word timings from Scribe.
+    const words = wordsFromTranscript("So one plus two is four, which is why the loop runs again.");
+    onFinish({ words, durationSec: words.at(-1)?.end ?? 0 });
   };
 
   return (

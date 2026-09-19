@@ -1,8 +1,9 @@
 // Everything a reviewer needs, computed once per request. Built by the
 // orchestrator and passed to each reviewer.
 
-import type { ResolvedConfig } from "./env.ts";
-import type { ReviewRequest, WordTiming } from "./types.ts";
+import type { WordTiming } from "@ta-coach/shared";
+import type { ResolvedConfig } from "./llm/config.ts";
+import type { ReviewRequest } from "./types.ts";
 import {
   type Segment,
   fillersPerMinute,

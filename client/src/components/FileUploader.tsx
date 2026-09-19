@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import type { UploadItem } from "../hooks/useMaterialSetup";
-import { ACCEPT_ATTR, formatSize, UPLOAD_LIMITS } from "../lib/validateFile";
+import { UPLOAD_LIMITS } from "@ta-coach/shared";
+import { ACCEPT_ATTR, formatSize } from "../lib/validateFile";
 
 interface Props {
   items: UploadItem[];
@@ -62,7 +63,7 @@ export default function FileUploader({ items, onAdd, onRemove, truncated }: Prop
           }}
         />
         <p className="mt-2 text-xs text-slate-500">
-          .pptx, PDF, .docx, .txt or .md · up to {UPLOAD_LIMITS.maxFiles} files, 20 MB each
+          .pptx, PDF, .docx, .txt or .md · up to {UPLOAD_LIMITS.maxFiles} files, {UPLOAD_LIMITS.maxBytes / (1024 * 1024)} MB each
         </p>
       </div>
 

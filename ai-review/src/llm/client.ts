@@ -3,7 +3,7 @@
 // Logs go to stderr to keep the demo's stdout report clean.
 
 import OpenAI from "openai";
-import type { ResolvedConfig } from "./env.ts";
+import type { ResolvedConfig } from "./config.ts";
 
 let client: OpenAI | null = null;
 

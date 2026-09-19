@@ -1,5 +1,6 @@
-import { isCoreGap } from "../lib/reviewSections";
-import type { ContentGap, SectionResult } from "../types";
+import type { SectionResult } from "@ta-coach/shared";
+import { isCoreGap } from "../lib/reviewView";
+import type { ContentGap } from "../types";
 
 interface Props {
   result: SectionResult<ContentGap[]>;
@@ -12,7 +13,7 @@ function GapItem({ gap }: { gap: ContentGap }) {
         <span className="font-medium">{gap.concept}</span>
         <span className="text-xs text-slate-500">{gap.status === "partial" ? "Partly covered" : "Not covered"}</span>
       </div>
-      {gap.source && <p className="text-xs text-slate-500">{gap.source}</p>}
+      {gap.note && <p className="text-xs text-slate-500">{gap.note}</p>}
     </li>
   );
 }
@@ -30,7 +31,7 @@ export default function ContentGaps({ result }: Props) {
 
       {result.status === "skipped" && <p className="mt-1 text-sm text-slate-500">{result.reason}</p>}
       {result.status === "error" && (
-        <p className="mt-1 text-sm text-slate-500">We couldn't check your coverage. {result.message}</p>
+        <p className="mt-1 text-sm text-slate-500">We couldn't check your coverage. {result.error}</p>
       )}
       {result.status === "ok" && gaps.length === 0 && (
         <p className="mt-1 text-sm text-emerald-800">You touched on every concept. Nice work.</p>

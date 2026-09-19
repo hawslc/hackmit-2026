@@ -8,9 +8,9 @@
 // in .env to use the real model.
 
 import { readFileSync } from "node:fs";
+import type { SectionResult, WordTiming } from "@ta-coach/shared";
 import { runReview } from "../src/index.ts";
 import { mmss } from "../src/transcript.ts";
-import type { SectionResult, WordTiming } from "../src/types.ts";
 
 const [transcriptPath, lessonPlanPath] = process.argv.slice(2);
 

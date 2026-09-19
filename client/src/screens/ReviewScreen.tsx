@@ -2,7 +2,7 @@ import ContentGaps from "../components/ContentGaps";
 import FactualIssues from "../components/FactualIssues";
 import SectionCard from "../components/SectionCard";
 import { useReview } from "../hooks/useReview";
-import { pickHighlighted, titleAt } from "../lib/reviewSections";
+import { pickHighlighted } from "../lib/reviewView";
 import type { CompletedSession, LectureMaterial } from "../types";
 
 interface Props {
@@ -71,12 +71,12 @@ export default function ReviewScreen({ material, session, onPracticeAgain }: Pro
       </header>
 
       <div className="space-y-3">
-        {review.sections.map((result, i) => (
+        {review.sections.map((section) => (
           <SectionCard
-            key={result.status === "ok" ? result.data.id : i}
-            title={titleAt(i)}
-            result={result}
-            highlighted={result.status === "ok" && highlighted.has(result.data.id)}
+            key={section.id}
+            title={section.title}
+            result={section.result}
+            highlighted={highlighted.has(section.id)}
           />
         ))}
       </div>

@@ -1,18 +1,18 @@
-// Materials endpoints, honoring the live client contract exactly
-// (client/src/api/materials.ts):
-//   POST /file     multipart field "file"  -> SourceFile { name, text, size, truncated? }
-//   POST /concepts JSON { files: SourceFile[] } -> bare array { name, source?, importance? }[]
+// Materials endpoints (contract types in @ta-coach/shared):
+//   POST /file     multipart field "file"  -> SourceFile
+//   POST /concepts ExtractConceptsRequest  -> ExtractConceptsResponse
 
+import { type ExtractConceptsResponse, type SourceFile, UPLOAD_LIMITS } from "@ta-coach/shared";
 import express from "express";
 import multer from "multer";
-import { extractConcepts, type MaterialFile } from "ai-review";
+import { extractConcepts } from "ai-review";
 import { extractFile } from "../extract/index.ts";
 import { HttpError } from "../httpError.ts";
-import { LIMITS } from "../limits.ts";
+import { parseExtractConceptsRequest } from "../validation.ts";
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: LIMITS.maxBytes, files: 1 },
+  limits: { fileSize: UPLOAD_LIMITS.maxBytes, files: 1 },
 });
 
 export const materialsRouter = express.Router();
@@ -22,29 +22,17 @@ materialsRouter.post("/file", upload.single("file"), async (req, res) => {
   if (!file) throw new HttpError(400, 'No file uploaded (expected a form field named "file").');
 
   const { text, truncated } = await extractFile(file.originalname, file.buffer);
-  res.json({
+  const body: SourceFile = {
     name: file.originalname,
     text,
     size: file.size,
     ...(truncated ? { truncated: true } : {}),
-  });
+  };
+  res.json(body);
 });
 
-interface ConceptsBody {
-  files?: { name?: string; text?: string }[];
-}
-
 materialsRouter.post("/concepts", async (req, res) => {
-  const { files } = (req.body ?? {}) as ConceptsBody;
-  if (!Array.isArray(files) || files.length === 0) {
-    throw new HttpError(400, "Send { files: SourceFile[] } with at least one file.");
-  }
-
-  const materialFiles: MaterialFile[] = files.map((f) => ({
-    name: String(f?.name ?? "file"),
-    text: String(f?.text ?? ""),
-  }));
-
-  const concepts = await extractConcepts(materialFiles);
+  const { files } = parseExtractConceptsRequest(req.body);
+  const concepts: ExtractConceptsResponse = await extractConcepts(files);
   res.json(concepts); // bare array is what the client expects
 });

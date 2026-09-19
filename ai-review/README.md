@@ -45,4 +45,28 @@ const review = await runReview(
 ```
 
 `runReview(req, opts?)` is the only entry point. Env is read lazily, so importing
-the module has no side effects. Types live in `src/types.ts`.
+the module has no side effects.
+The request and response contracts (`WordTiming`, `SessionReview`, `Concept`, …) live in
+[`@ta-coach/shared`](../shared/src); this package only defines `ReviewRequest` and `ReviewOptions`.
+
+## Layout
+
+```
+src/
+  index.ts          public entry point
+  orchestrate.ts    runReview: context → reviewers in parallel → synthesize
+  synthesize.ts     summary + top priority (prompt, mock and fallback live here)
+  concepts.ts       extractConcepts (step 0, run at upload)
+  context.ts        per-request data every reviewer needs
+  transcript.ts     pure helpers over word timings
+  llm/              infrastructure: config (env), completeJson, shared prompt fragments
+  reviewers/        one file per reviewer, each holding its prompt, its mock and its logic
+```
+
+To tune a reviewer, open its file: the prompt and the canned mock output sit at the top.
+
+## Tests
+
+```bash
+npm test    # node:test via tsx; runs offline against the mock provider
+```

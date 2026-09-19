@@ -3,8 +3,9 @@
 // never blanks the report), skips coverage when there's no lesson plan, then
 // synthesizes a summary + top priority.
 
+import type { SectionResult, SessionReview } from "@ta-coach/shared";
 import { buildContext } from "./context.ts";
-import { resolveConfig } from "./env.ts";
+import { resolveConfig } from "./llm/config.ts";
 import { reviewConfidence } from "./reviewers/confidence.ts";
 import { reviewCoverage } from "./reviewers/coverage.ts";
 import { reviewDelivery } from "./reviewers/delivery.ts";
@@ -12,7 +13,7 @@ import { reviewEngagement } from "./reviewers/engagement.ts";
 import { reviewStructure } from "./reviewers/structure.ts";
 import { reviewTeaching } from "./reviewers/teaching.ts";
 import { synthesize, type Sections } from "./synthesize.ts";
-import type { ReviewOptions, ReviewRequest, SectionResult, SessionReview } from "./types.ts";
+import type { ReviewOptions, ReviewRequest } from "./types.ts";
 
 function withTimeout<T>(p: Promise<T>, ms: number, task: string): Promise<T> {
   return new Promise((resolve, reject) => {

@@ -1,4 +1,4 @@
-import type { FactualIssue, SectionResult } from "../types";
+import type { FactualIssue, SectionResult } from "@ta-coach/shared";
 
 interface Props {
   result: SectionResult<FactualIssue[]>;
@@ -50,7 +50,7 @@ export default function FactualIssues({ result }: Props) {
   if (result.status === "error") {
     return (
       <p role="status" className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
-        {result.message || "We couldn't run the fact check this time."}
+        {result.error || "We couldn't run the fact check this time."}
       </p>
     );
   }

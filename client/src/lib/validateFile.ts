@@ -1,9 +1,5 @@
-export const UPLOAD_LIMITS = {
-  maxFiles: 5,
-  maxBytes: 20 * 1024 * 1024,
-} as const;
+import { ACCEPTED_EXTENSIONS, UPLOAD_LIMITS } from "@ta-coach/shared";
 
-export const ACCEPTED_EXTENSIONS = [".pptx", ".pdf", ".docx", ".txt", ".md"] as const;
 export const ACCEPT_ATTR = ACCEPTED_EXTENSIONS.join(",");
 
 /** Legacy formats we can't read, with the export hint to show. */

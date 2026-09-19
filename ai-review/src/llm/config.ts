@@ -1,7 +1,7 @@
 // Environment + resolved config. Read lazily so importing this module has no
 // side effects (a backend can import `runReview` without a .env present).
 
-import type { LlmProvider, ReviewOptions } from "./types.ts";
+import type { LlmProvider, ReviewOptions } from "../types.ts";
 
 let envLoaded = false;
 

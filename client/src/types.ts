@@ -1,25 +1,24 @@
-// TODO: replace with `shared/src/index.ts` once it exists. Names mirror docs/design.md.
-// Announce any change to these shapes in the team chat; they are the client/server contract.
+// Client-only types. What crosses the wire lives in `@ta-coach/shared`; this file
+// holds what the UI adds on top of it (concept origin, the session handed from
+// Practice to Review) and the review view model the Review screen renders.
 
-/** A lecture file after the server has extracted its text (POST /api/materials/file). */
-export interface SourceFile {
-  name: string;
-  /** Extracted text, markdown-headed (`## Slide 3`) so reviewers can cite sources. */
-  text: string;
-  size: number;
-  /** Set by the server when text was cut at UPLOAD_LIMITS.maxChars. */
-  truncated?: boolean;
-}
+import type {
+  Concept as WireConcept,
+  ConceptImportance,
+  CoverageStatus,
+  FactualIssue,
+  SectionResult,
+  SourceFile,
+  WordTiming,
+} from "@ta-coach/shared";
 
-/** One idea students should walk away with. */
-export interface Concept {
-  name: string;
-  /** Where it came from, e.g. `week3.pptx · slide 7`. Absent for user-added concepts. */
-  source?: string;
-  /** 1 (nice to have) to 5 (essential). Absent for user-added concepts. */
-  importance?: number;
-  /** Client-only. Stripped before anything is sent to the server. */
-  origin: "extracted" | "user";
+// ---- Materials -------------------------------------------------------------
+
+export type ConceptOrigin = "extracted" | "user";
+
+/** A wire concept plus where the UI got it from. `origin` never goes over the wire. */
+export interface Concept extends WireConcept {
+  origin: ConceptOrigin;
 }
 
 export interface LectureMaterial {
@@ -27,58 +26,52 @@ export interface LectureMaterial {
   concepts: Concept[];
 }
 
-/** TODO: reconcile with the AI owner. The server should accept a Concept with just a name. */
-export function toServerConcept({ origin: _origin, ...rest }: Concept): Omit<Concept, "origin"> {
-  return rest;
-}
-
-// ---- Review ----------------------------------------------------------------
-// TODO: replace with `shared` types once the server/AI owner's contract is merged.
+// ---- Practice → Review -----------------------------------------------------
 
 /** What Practice hands to Review on Finish. */
 export interface CompletedSession {
-  transcript: string;
+  /** Word-level timings from live transcription: what the review is built from. */
+  words: WordTiming[];
   durationSec: number;
-  // TODO(live): + words, metrics, recording
+  // TODO(live): + metrics, recording
 }
 
-// TODO(backend sections): replace with the sections defined by the backend once it's merged.
-export type SectionId = "speaking" | "content" | "teaching";
+// ---- Review view model -----------------------------------------------------
+// The server returns one section per reviewer (see `SessionReview`); the Review
+// screen renders them through this shape. `toReviewView` does the mapping.
+
+export type SectionId = "delivery" | "content" | "teaching" | "structure" | "engagement" | "confidence";
+
+export interface SectionFeedback {
+  point: string;
+  quote?: string;
+}
+
+export interface SectionDetail {
+  /** 0-100. Only sections with something measurable have one (content, teaching). */
+  score?: number;
+  summary: string;
+  feedback: SectionFeedback[];
+}
 
 /** Each part of a review can succeed, fail or be skipped on its own ("failures stay contained"). */
-export type SectionResult<T> =
-  | { status: "ok"; data: T }
-  | { status: "error"; message: string }
-  | { status: "skipped"; reason: string };
-
-export interface SectionReview {
+export interface ReviewSection {
   id: SectionId;
-  /** 0-100 */
-  score: number;
-  summary: string;
-  feedback: { point: string; quote?: string }[];
+  title: string;
+  result: SectionResult<SectionDetail>;
 }
 
 export interface ContentGap {
   concept: string;
-  source?: string;
-  importance?: number;
-  status: "missing" | "partial";
+  importance: ConceptImportance;
+  status: Exclude<CoverageStatus, "covered">;
+  note?: string;
 }
 
-export interface FactualIssue {
-  quote: string;
-  problem: string;
-  correction: string;
-  basis: "materials" | "general";
-  /** What the LLM used to judge the statement wrong. Only `http(s)` urls are rendered as links. */
-  source: { label: string; excerpt?: string; url?: string };
-}
-
-export interface SessionReview {
+export interface ReviewView {
   summary: string;
   topPriority: string;
-  sections: SectionResult<SectionReview>[];
+  sections: ReviewSection[];
   gaps: SectionResult<ContentGap[]>;
   factualIssues: SectionResult<FactualIssue[]>;
 }

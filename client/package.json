@@ -7,9 +7,11 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "tsx --test test/*.test.ts"
   },
   "dependencies": {
+    "@ta-coach/shared": "*",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
@@ -20,6 +22,7 @@
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.1.1",
     "tailwindcss": "4.3.3",
+    "tsx": "4.20.6",
     "typescript": "7.0.2",
     "vite": "8.3.0"
   }

@@ -1,9 +1,9 @@
 // Dispatch a single uploaded file to the right extractor by extension, verifying
 // magic bytes so a renamed file gets a friendly error instead of a crash. Text
-// beyond LIMITS.maxChars is truncated (not rejected) and flagged.
+// beyond UPLOAD_LIMITS.maxChars is truncated (not rejected) and flagged.
 
+import { UPLOAD_LIMITS } from "@ta-coach/shared";
 import { HttpError } from "../httpError.ts";
-import { LIMITS } from "../limits.ts";
 import { extractDocx } from "./docx.ts";
 import { extractPdf } from "./pdf.ts";
 import { extractPptx } from "./pptx.ts";
@@ -66,8 +66,8 @@ export async function extractFile(name: string, bytes: Uint8Array): Promise<Extr
       );
   }
 
-  if (text.length > LIMITS.maxChars) {
-    return { text: text.slice(0, LIMITS.maxChars), truncated: true };
+  if (text.length > UPLOAD_LIMITS.maxChars) {
+    return { text: text.slice(0, UPLOAD_LIMITS.maxChars), truncated: true };
   }
   return { text, truncated: false };
 }

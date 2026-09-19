@@ -1,6 +1,7 @@
 // One error shape for the whole API: every non-2xx returns JSON `{ error }`,
-// which is exactly what the client reads (client/src/api/materials.ts).
+// (ApiErrorBody in @ta-coach/shared), which is what the client reads.
 
+import type { ApiErrorBody } from "@ta-coach/shared";
 import type { ErrorRequestHandler } from "express";
 
 export class HttpError extends Error {
@@ -32,5 +33,6 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   }
 
   if (status >= 500) console.error("[server] error:", err);
-  res.status(status).json({ error: message });
+  const body: ApiErrorBody = { error: message };
+  res.status(status).json(body);
 };

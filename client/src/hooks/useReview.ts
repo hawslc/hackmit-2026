@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { requestReview } from "../api/review";
-import type { CompletedSession, LectureMaterial, SessionReview } from "../types";
+import { api } from "../api";
+import { toReviewView } from "../lib/reviewView";
+import type { CompletedSession, LectureMaterial, ReviewView } from "../types";
 
 type State =
   | { status: "loading" }
   | { status: "error" }
-  | { status: "ready"; review: SessionReview };
+  | { status: "ready"; review: ReviewView };
 
 /** Requests the review once on mount (and again on `retry`), ignoring results after unmount. */
 export function useReview(material: LectureMaterial, session: CompletedSession) {
@@ -15,9 +16,9 @@ export function useReview(material: LectureMaterial, session: CompletedSession) 
   useEffect(() => {
     const controller = new AbortController();
     setState({ status: "loading" });
-    requestReview(material, session, controller.signal).then(
+    api.review.requestReview(material, session, controller.signal).then(
       (review) => {
-        if (!controller.signal.aborted) setState({ status: "ready", review });
+        if (!controller.signal.aborted) setState({ status: "ready", review: toReviewView(review) });
       },
       () => {
         if (!controller.signal.aborted) setState({ status: "error" });

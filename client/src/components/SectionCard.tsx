@@ -1,8 +1,9 @@
-import type { SectionResult, SectionReview } from "../types";
+import type { SectionResult } from "@ta-coach/shared";
+import type { SectionDetail } from "../types";
 
 interface Props {
   title: string;
-  result: SectionResult<SectionReview>;
+  result: SectionResult<SectionDetail>;
   /** One of the lowest-scoring sections: shows specific feedback, not just the score. */
   highlighted: boolean;
 }
@@ -31,13 +32,15 @@ export default function SectionCard({ title, result, highlighted }: Props) {
       <section className={`${card} bg-slate-50`}>
         <h3 className="font-semibold">{title}</h3>
         <p className="mt-1 text-sm text-slate-500">
-          {result.status === "error" ? `We couldn't score this part. ${result.message}` : result.reason}
+          {result.status === "error" ? `We couldn't score this part. ${result.error}` : result.reason}
         </p>
       </section>
     );
   }
 
   const { score, summary, feedback } = result.data;
+  // Unscored sections have nothing else to show, so their feedback is always visible.
+  const showFeedback = (highlighted || score === undefined) && feedback.length > 0;
   return (
     <section className={highlighted ? `${card} ring-2 ring-brand-600/40` : card}>
       <div className="flex items-start justify-between gap-3">
@@ -49,11 +52,11 @@ export default function SectionCard({ title, result, highlighted }: Props) {
             </span>
           )}
         </div>
-        <ScorePill score={score} />
+        {score !== undefined && <ScorePill score={score} />}
       </div>
       <p className="mt-2 text-sm text-slate-600">{summary}</p>
 
-      {highlighted && feedback.length > 0 && (
+      {showFeedback && (
         <ul className="mt-4 space-y-3">
           {feedback.map((f, i) => (
             <li key={i} className="text-sm">

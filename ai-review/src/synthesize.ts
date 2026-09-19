@@ -2,12 +2,10 @@
 // throws: on any LLM failure it falls back to a deterministic priority using the
 // rubric's preference order (missing core > lowest teaching score > delivery/structure).
 
-import type { ResolvedConfig } from "./env.ts";
-import { isMock } from "./env.ts";
-import { completeJson } from "./llm.ts";
-import { mockSynthesis } from "./mock.ts";
-import { synthesizePrompt } from "./prompts.ts";
-import type { SectionResult, SessionReview } from "./types.ts";
+import type { SectionResult, SessionReview } from "@ta-coach/shared";
+import { completeJson } from "./llm/client.ts";
+import { isMock, type ResolvedConfig } from "./llm/config.ts";
+import type { Prompt } from "./llm/prompt.ts";
 
 /** The sections produced before synthesis. */
 export type Sections = Omit<SessionReview, "summary" | "topPriority">;
@@ -16,6 +14,32 @@ interface Synthesis {
   summary: string;
   topPriority: string;
 }
+
+// ---- Prompt ---------------------------------------------------------------
+
+function prompt(digest: string): Prompt {
+  return {
+    system: `You are the lead mentor. Several specialist reviewers have assessed a teaching-practice session; their notes are below.
+Write a short, encouraging summary (2–3 sentences) of how it went, then pick ONE top priority to work on next.
+Priority preference order: a missing CORE concept > the lowest teaching-skill score > the most impactful delivery or structure issue.
+Make the top priority concrete and actionable.
+
+Return JSON: { "summary": string, "topPriority": string }
+Output only the JSON object.`,
+    user: `Reviewer notes:\n${digest}`,
+  };
+}
+
+// ---- Mock (LLM_PROVIDER=mock) ---------------------------------------------
+
+const mockSynthesis: Synthesis = {
+  summary:
+    "A clear, friendly intro to recursion: you defined the base case well and used factorial as a solid worked example. The main opportunity is checking for understanding — you mostly asked \"does that make sense?\" rather than making students predict or reason.",
+  topPriority:
+    "Replace closed checks (\"make sense?\") with one open question that forces prediction, e.g. \"What happens if we remove the base case?\"",
+};
+
+// ---- Synthesis ------------------------------------------------------------
 
 const data = <T>(s: SectionResult<T>): T | undefined => (s.status === "ok" ? s.data : undefined);
 
@@ -106,7 +130,7 @@ export async function synthesize(s: Sections, cfg: ResolvedConfig): Promise<Synt
   if (isMock(cfg)) return mockSynthesis;
 
   try {
-    const { system, user } = synthesizePrompt(buildDigest(s));
+    const { system, user } = prompt(buildDigest(s));
     const raw = await completeJson<Partial<Synthesis>>({ task: "synthesize", system, user }, cfg);
     if (raw.summary && raw.topPriority) {
       return { summary: raw.summary, topPriority: raw.topPriority };

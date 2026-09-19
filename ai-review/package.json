@@ -13,9 +13,11 @@
   },
   "scripts": {
     "demo": "tsx demo/run.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts"
   },
   "dependencies": {
+    "@ta-coach/shared": "*",
     "openai": "7.15.0"
   },
   "devDependencies": {

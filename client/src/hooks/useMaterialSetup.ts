@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { extractConcepts, uploadFile } from "../api/materials";
-import { tooManyFilesMessage, UPLOAD_LIMITS, validateFile } from "../lib/validateFile";
-import type { Concept, LectureMaterial, SourceFile } from "../types";
+import { UPLOAD_LIMITS, type SourceFile } from "@ta-coach/shared";
+import { api } from "../api";
+import { tooManyFilesMessage, validateFile } from "../lib/validateFile";
+import type { Concept, LectureMaterial } from "../types";
 
 export interface UploadItem {
   id: string;
@@ -65,7 +66,7 @@ export function useMaterialSetup() {
       }));
       setItems((prev) => [...prev, ...added]);
       added.forEach((item, i) => {
-        uploadFile(accepted[i]).then(
+        api.materials.uploadFile(accepted[i]!).then(
           (source) =>
             setItems((prev) =>
               prev.map((p) => (p.id === item.id ? { ...p, status: "ready", source } : p)),
@@ -101,7 +102,7 @@ export function useMaterialSetup() {
       return;
     }
     setExtraction("loading");
-    extractConcepts(files).then(
+    api.materials.extractConcepts(files).then(
       (extracted) => {
         if (mine !== run.current) return;
         setConcepts((prev) => {
