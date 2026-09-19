@@ -1,0 +1,29 @@
+{
+  "name": "server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "TA Coach server — materials extraction + concept/review endpoints, wrapping ai-review as the LLM brain.",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "ai-review": "*",
+    "express": "5.2.1",
+    "fflate": "0.8.3",
+    "multer": "2.3.0",
+    "unpdf": "1.8.1"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.6",
+    "@types/multer": "2.2.0",
+    "@types/node": "22.19.21",
+    "tsx": "4.20.6",
+    "typescript": "7.0.2"
+  }
+}
