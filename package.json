@@ -1,0 +1,20 @@
+{
+  "name": "ta-coach",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "TA Coach — practice teaching, get mentor-style AI review. Monorepo: client (React), server (Express), ai-review (LLM reviewers).",
+  "workspaces": [
+    "client",
+    "server",
+    "ai-review"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,green \"npm -w server run dev\" \"npm -w client run dev\"",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "10.0.5"
+  }
+}
