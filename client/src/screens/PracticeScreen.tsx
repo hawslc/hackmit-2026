@@ -1,23 +1,24 @@
 import { useEffect } from "react";
-import type { LectureMaterial } from "../types";
+import type { CompletedSession, LectureMaterial } from "../types";
 
 interface Props {
   material: LectureMaterial;
   /** Already-open mic stream from Setup. Reuse it; don't call getUserMedia again. */
   stream: MediaStream;
-  onFinish: () => void;
+  onFinish: (session: CompletedSession) => void;
 }
 
 // TODO(live): replace this stub with the live session: Scribe transcription, Web Audio meters,
-// MediaRecorder and the live speaking score, all driven from `stream`. On Finish, hand the
-// CompletedSession to Review instead of just returning to Setup.
+// MediaRecorder and the live speaking score, all driven from `stream`. Finish hands a real
+// CompletedSession to Review; for now it's a fake one.
 export default function PracticeScreen({ material, stream, onFinish }: Props) {
   // Safety net: release the mic if this screen unmounts any other way.
   useEffect(() => () => stream.getTracks().forEach((t) => t.stop()), [stream]);
 
   const finish = () => {
     stream.getTracks().forEach((t) => t.stop());
-    onFinish();
+    // TODO(live): real transcript and duration.
+    onFinish({ transcript: "So one plus two is four, which is why the loop runs again.", durationSec: 0 });
   };
 
   return (

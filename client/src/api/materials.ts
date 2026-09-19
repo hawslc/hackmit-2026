@@ -1,4 +1,5 @@
 import type { Concept, SourceFile } from "../types";
+import { errorMessage, jitter, sleep } from "./util";
 
 // Mock mode stays on until the server lands. Set VITE_USE_MOCK_API=false to hit the real API.
 const USE_MOCK = import.meta.env.VITE_USE_MOCK_API !== "false";
@@ -26,24 +27,11 @@ export async function extractConcepts(files: SourceFile[]): Promise<Concept[]> {
   return concepts.map((c) => ({ ...c, origin: "extracted" as const }));
 }
 
-async function errorMessage(res: Response, fallback: string): Promise<string> {
-  try {
-    const data = (await res.json()) as { error?: string };
-    if (data.error) return data.error;
-  } catch {
-    // Not JSON; use the fallback.
-  }
-  return fallback;
-}
-
 // ---- Mock mode -------------------------------------------------------------
 // Handy triggers for demoing the failure states:
 //   filename contains "fail-upload"    → that upload errors
 //   filename contains "long"           → the server reports truncation
 //   filename contains "fail-concepts"  → concept extraction errors (until that file is removed)
-
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const jitter = (min: number, max: number) => min + Math.random() * (max - min);
 
 async function mockUploadFile(file: File): Promise<SourceFile> {
   await sleep(jitter(600, 1800));
