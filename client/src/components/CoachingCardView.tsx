@@ -1,20 +1,6 @@
 import { useState } from "react";
-import type { CoachingCard, CoachingCategory } from "@cadence/shared";
-
-/** Category → display label. Coverage shows as "Content" in the UI. */
-export const categoryLabel: Record<CoachingCategory, string> = {
-  delivery: "Delivery",
-  coverage: "Content",
-  teaching: "Teaching",
-  structure: "Structure",
-  engagement: "Engagement",
-  confidence: "Confidence",
-};
-
-function mmss(sec: number): string {
-  const s = Math.max(0, Math.round(sec));
-  return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`;
-}
+import type { CoachingCard } from "@cadence/shared";
+import { categoryLabel, mmss } from "../lib/cardLabels";
 
 interface Props {
   card: CoachingCard;
