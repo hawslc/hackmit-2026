@@ -8,6 +8,7 @@ import express from "express";
 import { errorHandler } from "./httpError.ts";
 import { materialsRouter } from "./routes/materials.ts";
 import { reviewRouter } from "./routes/review.ts";
+import { scribeTokenRouter } from "./routes/scribeToken.ts";
 
 const app = express();
 app.use(express.json({ limit: "5mb" }));
@@ -16,6 +17,7 @@ app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
 });
 
+app.use("/api", scribeTokenRouter);
 app.use("/api/materials", materialsRouter);
 app.use("/api/review", reviewRouter);
 

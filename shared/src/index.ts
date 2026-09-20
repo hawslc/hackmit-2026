@@ -6,3 +6,5 @@ export * from "./api.ts";
 export * from "./limits.ts";
 export * from "./materials.ts";
 export * from "./review.ts";
+export * from "./speaking.ts";
+export * from "./speakingScore.ts";
