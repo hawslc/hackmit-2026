@@ -147,3 +147,26 @@ export function locateQuoteSec(quote: string, segments: Segment[]): number {
   }
   return best?.startSec ?? segments[0]!.startSec;
 }
+
+/**
+ * True when the quote is actually present in the transcript: an exact normalized
+ * substring of some segment, or sharing at least `min(3, quoteWords)` words with
+ * one. This is the grounding gate — ungrounded LLM quotes are dropped upstream.
+ */
+export function isQuoteGrounded(quote: string, segments: Segment[]): boolean {
+  const q = normalize2(quote);
+  if (!q) return false;
+  for (const seg of segments) {
+    if (normalize2(seg.text).includes(q)) return true;
+  }
+  const qWords = words2(quote);
+  if (qWords.length === 0) return false;
+  const qSet = new Set(qWords);
+  let best = 0;
+  for (const seg of segments) {
+    let overlap = 0;
+    for (const w of words2(seg.text)) if (qSet.has(w)) overlap++;
+    if (overlap > best) best = overlap;
+  }
+  return best >= Math.min(3, qWords.length);
+}
