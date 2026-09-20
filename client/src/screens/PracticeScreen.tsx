@@ -7,6 +7,8 @@ interface Props {
   material: LectureMaterial;
   /** Already-open mic stream from Setup. Reuse it; don't call getUserMedia again. */
   stream: MediaStream;
+  /** Carried from the last review's focus card; shown as a reminder banner. */
+  practiceGoal?: string;
   onFinish: (session: CompletedSession) => void;
   /** Leave practice without a session (e.g. capture couldn't start). */
   onCancel: () => void;
@@ -32,7 +34,7 @@ function scoreColor(score: number): string {
   return "bg-amber-500";
 }
 
-export default function PracticeScreen({ material, stream, onFinish, onCancel }: Props) {
+export default function PracticeScreen({ material, stream, practiceGoal, onFinish, onCancel }: Props) {
   const { phase, live, error, start, finish } = usePracticeSession();
   const [showMetrics, setShowMetrics] = useState(true);
   const [showTranscript, setShowTranscript] = useState(true);
@@ -119,6 +121,13 @@ export default function PracticeScreen({ material, stream, onFinish, onCancel }:
           </span>
         </div>
       </header>
+
+      {practiceGoal && (
+        <p className="rounded-xl bg-brand-50 px-4 py-3 text-sm text-slate-800">
+          <span className="font-semibold text-brand-700">This time: </span>
+          {practiceGoal}
+        </p>
+      )}
 
       {error && (
         <p role="alert" className="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-900">

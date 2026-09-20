@@ -16,31 +16,33 @@ afterEach(() => {
 });
 
 describe("runReview (mock provider)", () => {
-  it("fills every section when a lesson plan is given", async () => {
+  it("returns a grounded focus card", async () => {
     const review = await runReview({ words, lessonPlan: "Recursion" }, { provider: "mock" });
-    for (const key of ["delivery", "coverage", "teaching", "structure", "engagement", "confidence"] as const) {
-      assert.equal(review[key].status, "ok", key);
-    }
-    assert.ok(review.summary && review.topPriority);
+    assert.equal(review.evidenceState, "coached");
+    assert.ok(review.focus, "expected a focus card");
+    assert.ok(review.focus!.headline.length);
+    assert.ok(review.focus!.tryInstead.length);
+    assert.ok(review.focus!.practiceGoal.length);
+    assert.ok(Array.isArray(review.more));
   });
 
-  it("skips coverage without a lesson plan", async () => {
+  it("still coaches without a lesson plan (coverage contributes nothing)", async () => {
     const review = await runReview({ words }, { provider: "mock" });
-    assert.equal(review.coverage.status, "skipped");
-    assert.equal(review.delivery.status, "ok");
+    assert.equal(review.evidenceState, "coached");
+    assert.notEqual(review.focus, null);
+    // No coverage observation can appear without a plan.
+    assert.equal([review.focus, ...review.more].some((c) => c && c.category === "coverage"), false);
   });
 });
 
 describe("runReview failure containment", () => {
-  it("turns a failing reviewer into an inline error and still returns a report", async () => {
-    // The openai provider without a key makes every LLM call throw.
+  it("returns insufficient (not an error) when every reviewer fails", async () => {
+    // The openai provider without a key makes every LLM call throw → no observations.
     delete process.env.OPENAI_API_KEY;
     const review = await runReview({ words, lessonPlan: "Recursion" }, { provider: "openai" });
-
-    assert.equal(review.delivery.status, "error");
-    assert.match(review.delivery.status === "error" ? review.delivery.error : "", /OPENAI_API_KEY/);
-    // Synthesis falls back to a deterministic summary instead of throwing.
-    assert.ok(review.summary && review.topPriority);
+    assert.equal(review.evidenceState, "insufficient");
+    assert.equal(review.focus, null);
+    assert.deepEqual(review.more, []);
   });
 });
 
