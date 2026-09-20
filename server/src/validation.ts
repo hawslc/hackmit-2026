@@ -7,7 +7,7 @@ import type {
   ReviewMaterial,
   ReviewRequestBody,
   WordTiming,
-} from "@ta-coach/shared";
+} from "@cadence/shared";
 import { HttpError } from "./httpError.ts";
 
 type UnknownRecord = Record<string, unknown>;

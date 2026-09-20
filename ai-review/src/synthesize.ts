@@ -2,7 +2,7 @@
 // throws: on any LLM failure it falls back to a deterministic priority using the
 // rubric's preference order (missing core > lowest teaching score > delivery/structure).
 
-import type { SectionResult, SessionReview } from "@ta-coach/shared";
+import type { SectionResult, SessionReview } from "@cadence/shared";
 import { completeJson } from "./llm/client.ts";
 import { isMock, type ResolvedConfig } from "./llm/config.ts";
 import type { Prompt } from "./llm/prompt.ts";

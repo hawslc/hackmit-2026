@@ -12,7 +12,7 @@ import type {
   StructureReview,
   TeachingCategory,
   TeachingReview,
-} from "@ta-coach/shared";
+} from "@cadence/shared";
 import type { ContentGap, ReviewSection, ReviewView, SectionDetail, SectionId } from "../types";
 
 const TEACHING_LABELS: Record<TeachingCategory, string> = {
@@ -116,6 +116,18 @@ export function toReviewView(review: SessionReview): ReviewView {
     gaps: mapResult(review.coverage, coverageGaps),
     factualIssues: review.factualIssues ?? { status: "skipped", reason: FACTS_UNAVAILABLE },
   };
+}
+
+/**
+ * Whether a section has anything worth rendering. Skipped and failed sections have no
+ * content; an "ok" section counts only if it actually says something. The Content section
+ * is special: its concept breakdown is the content, so an empty breakdown means nothing to show.
+ */
+export function sectionHasContent(section: ReviewSection): boolean {
+  if (section.result.status !== "ok") return false;
+  const { score, summary, feedback, concepts } = section.result.data;
+  if (section.id === "content") return (concepts?.length ?? 0) > 0;
+  return score !== undefined || feedback.length > 0 || summary.trim().length > 0;
 }
 
 /** Ids of the `count` lowest-scoring sections. Failed, skipped and unscored sections aren't ranked. */

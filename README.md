@@ -1,6 +1,6 @@
-# hackmit-2026
+# Cadence
 
-hackmit project for 2026, education track
+Practice teaching, get mentor-style AI review. HackMIT 2026 project, education track.
 
 ## Layout
 

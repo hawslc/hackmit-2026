@@ -8,7 +8,7 @@
 // in .env to use the real model.
 
 import { readFileSync } from "node:fs";
-import type { SectionResult, WordTiming } from "@ta-coach/shared";
+import type { SectionResult, WordTiming } from "@cadence/shared";
 import { runReview } from "../src/index.ts";
 import { mmss } from "../src/transcript.ts";
 
@@ -36,7 +36,7 @@ function section<T>(title: string, result: SectionResult<T>, body: (data: T) => 
 
 const review = await runReview({ words, lessonPlan });
 
-console.log(H("═══ TA COACH — SESSION REVIEW ═══"));
+console.log(H("═══ CADENCE — SESSION REVIEW ═══"));
 console.log(`\n${review.summary}`);
 console.log(`\n\x1b[1m➤ Top priority:\x1b[0m ${review.topPriority}`);
 

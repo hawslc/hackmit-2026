@@ -4,7 +4,7 @@ import {
   type Pause,
   type PitchSummary,
   type VolumeSummary,
-} from "@ta-coach/shared";
+} from "@cadence/shared";
 
 export interface InstantAudio {
   pitchHz: number | null;

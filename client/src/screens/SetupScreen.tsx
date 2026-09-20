@@ -56,7 +56,7 @@ export default function SetupScreen({ setup, onStart }: Props) {
     <main className="mx-auto flex min-h-screen max-w-xl items-center px-4 py-8">
       <div className="w-full space-y-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-8">
         <header>
-          <h1 className="text-2xl font-bold text-brand-700">TA Practice Coach</h1>
+          <h1 className="text-2xl font-bold text-brand-700">Cadence</h1>
           <p className="mt-1 text-slate-600">Upload your materials, then teach out loud.</p>
         </header>
 

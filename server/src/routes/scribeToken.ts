@@ -3,7 +3,7 @@
 // browser opens the ElevenLabs WebSocket directly with it, so the API key never
 // leaves the server. Errors flow through the central errorHandler as { error }.
 
-import type { ScribeTokenResponse } from "@ta-coach/shared";
+import type { ScribeTokenResponse } from "@cadence/shared";
 import { Router } from "express";
 import { HttpError } from "../httpError.ts";
 

@@ -1,7 +1,7 @@
 // Turns the lecture material the client holds into the plain-text lesson plan
 // ai-review's coverage reviewer reads.
 
-import type { ReviewMaterial } from "@ta-coach/shared";
+import type { ReviewMaterial } from "@cadence/shared";
 
 /** Returns undefined when there is nothing to grade against, so coverage is skipped. */
 export function materialToLessonPlan(material: ReviewMaterial): string | undefined {

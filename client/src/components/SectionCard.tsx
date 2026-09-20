@@ -1,4 +1,4 @@
-import type { CoverageStatus, SectionResult } from "@ta-coach/shared";
+import type { CoverageStatus, SectionResult } from "@cadence/shared";
 import type { ConceptCoverageItem, SectionDetail } from "../types";
 
 interface Props {

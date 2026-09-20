@@ -1,4 +1,4 @@
-import type { ScribeTokenResponse, TranscriptWord } from "@ta-coach/shared";
+import type { ScribeTokenResponse, TranscriptWord } from "@cadence/shared";
 
 /**
  * Scribe v2 Realtime over a raw WebSocket. We own the MediaStream (shared

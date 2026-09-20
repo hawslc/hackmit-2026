@@ -3,7 +3,7 @@
 // never blanks the report), skips coverage when there's no lesson plan, then
 // synthesizes a summary + top priority.
 
-import type { SectionResult, SessionReview } from "@ta-coach/shared";
+import type { SectionResult, SessionReview } from "@cadence/shared";
 import { buildContext } from "./context.ts";
 import { resolveConfig } from "./llm/config.ts";
 import { reviewConfidence } from "./reviewers/confidence.ts";

@@ -1,4 +1,4 @@
-// TA Coach server. Thin HTTP layer: extract materials, extract concepts, run the
+// Cadence server. Thin HTTP layer: extract materials, extract concepts, run the
 // review — all the LLM work lives in the ai-review workspace. Holds no state.
 
 import { loadEnv, port } from "./env.ts";

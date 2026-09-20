@@ -2,7 +2,7 @@ import {
   computeSpeakingScore,
   type DeliveryMetrics,
   type SpeakingScore,
-} from "@ta-coach/shared";
+} from "@cadence/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CompletedSession } from "../types";
 import { AudioFeatureSampler, type InstantAudio } from "./audioFeatures";

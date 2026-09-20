@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { computeSpeakingScore, type SpeakingScoreComponents } from "@ta-coach/shared";
+import { computeSpeakingScore, type SpeakingScoreComponents } from "@cadence/shared";
 import type { CompletedSession } from "../types";
 
 interface Props {

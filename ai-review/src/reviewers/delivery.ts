@@ -1,6 +1,6 @@
 // Delivery: word-level clarity & conciseness only (no fillers/tone/pace).
 
-import type { DeliveryIssue, DeliveryMoment, DeliveryReview } from "@ta-coach/shared";
+import type { DeliveryIssue, DeliveryMoment, DeliveryReview } from "@cadence/shared";
 import type { ReviewContext } from "../context.ts";
 import { completeJson } from "../llm/client.ts";
 import { isMock } from "../llm/config.ts";

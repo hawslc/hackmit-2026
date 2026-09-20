@@ -1,4 +1,4 @@
-// Client-only types. What crosses the wire lives in `@ta-coach/shared`; this file
+// Client-only types. What crosses the wire lives in `@cadence/shared`; this file
 // holds what the UI adds on top of it (concept origin, the session handed from
 // Practice to Review) and the review view model the Review screen renders.
 
@@ -11,7 +11,7 @@ import type {
   SectionResult,
   SourceFile,
   WordTiming,
-} from "@ta-coach/shared";
+} from "@cadence/shared";
 
 // ---- Materials -------------------------------------------------------------
 

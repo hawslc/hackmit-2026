@@ -6,7 +6,7 @@ import type {
   ConceptImportance,
   CoverageReview,
   CoverageStatus,
-} from "@ta-coach/shared";
+} from "@cadence/shared";
 import type { ReviewContext } from "../context.ts";
 import { completeJson } from "../llm/client.ts";
 import { isMock } from "../llm/config.ts";

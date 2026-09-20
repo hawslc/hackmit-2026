@@ -1,8 +1,8 @@
 // Contracts local to the ai-review module. Everything that crosses the package
 // boundary (the request words, the SessionReview it returns, concepts) lives in
-// `@ta-coach/shared`.
+// `@cadence/shared`.
 
-import type { WordTiming } from "@ta-coach/shared";
+import type { WordTiming } from "@cadence/shared";
 
 export type LlmProvider = "mock" | "openai";
 

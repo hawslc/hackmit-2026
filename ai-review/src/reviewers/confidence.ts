@@ -1,7 +1,7 @@
 // Confidence & filler: hedging + filler words. fillersPerMinute is deterministic
 // (from timestamps); the LLM only picks illustrative instances and writes the note.
 
-import type { ConfidenceInstance, ConfidenceInstanceType, ConfidenceReview } from "@ta-coach/shared";
+import type { ConfidenceInstance, ConfidenceInstanceType, ConfidenceReview } from "@cadence/shared";
 import type { ReviewContext } from "../context.ts";
 import { completeJson } from "../llm/client.ts";
 import { isMock } from "../llm/config.ts";

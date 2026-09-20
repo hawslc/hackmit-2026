@@ -1,4 +1,4 @@
-import type { ApiErrorBody } from "@ta-coach/shared";
+import type { ApiErrorBody } from "@cadence/shared";
 
 /** The server's `{ error }` message, or `fallback` when the body isn't that. */
 async function errorMessage(res: Response, fallback: string): Promise<string> {

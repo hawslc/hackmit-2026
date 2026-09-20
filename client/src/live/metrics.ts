@@ -8,7 +8,7 @@ import {
   type PitchSummary,
   type TranscriptWord,
   type VolumeSummary,
-} from "@ta-coach/shared";
+} from "@cadence/shared";
 
 const FILLER_REGEX = new RegExp(
   `\\b(${FILLER_PHRASES.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})\\b`,

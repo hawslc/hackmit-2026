@@ -47,7 +47,7 @@ const review = await runReview(
 `runReview(req, opts?)` is the only entry point. Env is read lazily, so importing
 the module has no side effects.
 The request and response contracts (`WordTiming`, `SessionReview`, `Concept`, …) live in
-[`@ta-coach/shared`](../shared/src); this package only defines `ReviewRequest` and `ReviewOptions`.
+[`@cadence/shared`](../shared/src); this package only defines `ReviewRequest` and `ReviewOptions`.
 
 ## Layout
 

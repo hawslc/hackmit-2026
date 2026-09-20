@@ -1,7 +1,7 @@
 // Everything a reviewer needs, computed once per request. Built by the
 // orchestrator and passed to each reviewer.
 
-import type { WordTiming } from "@ta-coach/shared";
+import type { WordTiming } from "@cadence/shared";
 import type { ResolvedConfig } from "./llm/config.ts";
 import type { ReviewRequest } from "./types.ts";
 import {

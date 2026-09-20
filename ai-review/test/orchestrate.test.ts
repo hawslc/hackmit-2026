@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
-import type { WordTiming } from "@ta-coach/shared";
+import type { WordTiming } from "@cadence/shared";
 import { extractConcepts, runReview } from "../src/index.ts";
 
 const words: WordTiming[] = "So, um, recursion is when a function calls itself.".split(" ").map((text, i) => ({

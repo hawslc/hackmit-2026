@@ -1,4 +1,4 @@
-import type { FactualIssue, SectionResult } from "@ta-coach/shared";
+import type { FactualIssue, SectionResult } from "@cadence/shared";
 
 interface Props {
   result: SectionResult<FactualIssue[]>;

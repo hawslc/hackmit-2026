@@ -1,4 +1,4 @@
-import type { ExtractConceptsRequest, ExtractConceptsResponse, SourceFile } from "@ta-coach/shared";
+import type { ExtractConceptsRequest, ExtractConceptsResponse, SourceFile } from "@cadence/shared";
 import { postJson, requestJson } from "./http";
 import type { MaterialsApi } from "./types";
 

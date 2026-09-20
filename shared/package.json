@@ -1,9 +1,9 @@
 {
-  "name": "@ta-coach/shared",
+  "name": "@cadence/shared",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "TA Coach shared contract — the types and constants that cross the client / server / ai-review boundaries. Source-only: consumers import the TypeScript directly.",
+  "description": "Cadence shared contract — the types and constants that cross the client / server / ai-review boundaries. Source-only: consumers import the TypeScript directly.",
   "main": "src/index.ts",
   "exports": {
     ".": "./src/index.ts"

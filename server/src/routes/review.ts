@@ -1,7 +1,7 @@
 // POST /api/review: wraps ai-review's runReview. With LLM_PROVIDER unset,
 // ai-review defaults to mock, so this returns a full canned SessionReview offline.
 
-import type { SessionReview } from "@ta-coach/shared";
+import type { SessionReview } from "@cadence/shared";
 import express from "express";
 import { runReview } from "ai-review";
 import { materialToLessonPlan } from "../lessonPlan.ts";

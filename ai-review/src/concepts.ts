@@ -2,7 +2,7 @@
 // uploaded lecture files into the concept checklist the coverage reviewer grades
 // against. Kept here so all LLM logic — and the mock path — lives in one module.
 
-import type { Concept, ExtractConceptsRequest } from "@ta-coach/shared";
+import type { Concept, ExtractConceptsRequest } from "@cadence/shared";
 import { completeJson } from "./llm/client.ts";
 import { isMock, resolveConfig } from "./llm/config.ts";
 import type { Prompt } from "./llm/prompt.ts";
@@ -69,16 +69,7 @@ export const CONCEPTS_TIMEOUT_MS = 60_000;
 /** Safety net against runaway output; the prompt asks for 5–12. */
 const MAX_CONCEPTS = 20;
 
-// ---- Mock (LLM_PROVIDER=mock) ---------------------------------------------
-// Themed around the recursion lesson so the offline Setup screen populates coherent chips.
 
-const mockConcepts: Concept[] = [
-  { name: "Base case", importance: 5, source: "recursion.pptx · slide 3" },
-  { name: "Recursive case", importance: 5, source: "recursion.pptx · slide 4" },
-  { name: "The call stack", importance: 3, source: "recursion.pptx · slide 6" },
-  { name: "Infinite recursion / stack overflow", importance: 3, source: "notes.md · Pitfalls" },
-  { name: "Factorial as a worked example", importance: 2, source: "recursion.pptx · slide 5" },
-];
 
 // ---- Extraction -----------------------------------------------------------
 
@@ -106,7 +97,6 @@ export async function extractConcepts(
   opts: ReviewOptions = {},
 ): Promise<Concept[]> {
   const cfg = resolveConfig(opts);
-  if (isMock(cfg)) return mockConcepts;
 
   const { system, user } = prompt(files);
   const raw = await completeJson<RawConcepts>(

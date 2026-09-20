@@ -2,7 +2,7 @@
 // magic bytes so a renamed file gets a friendly error instead of a crash. Text
 // beyond UPLOAD_LIMITS.maxChars is truncated (not rejected) and flagged.
 
-import { UPLOAD_LIMITS } from "@ta-coach/shared";
+import { UPLOAD_LIMITS } from "@cadence/shared";
 import { HttpError } from "../httpError.ts";
 import { extractDocx } from "./docx.ts";
 import { extractPdf } from "./pdf.ts";

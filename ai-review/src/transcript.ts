@@ -2,7 +2,7 @@
 // signals reviewers rely on (elapsed time, sentence segments, pauses, fillers)
 // and format a timestamped transcript so the LLM can cite `[mm:ss]` moments.
 
-import type { WordTiming } from "@ta-coach/shared";
+import type { WordTiming } from "@cadence/shared";
 
 export const LONG_PAUSE_SEC = 1.5;
 

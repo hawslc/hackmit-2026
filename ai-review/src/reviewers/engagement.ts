@@ -1,6 +1,6 @@
 // Engagement: interactivity, questions, energy — the human-connection angle.
 
-import type { EngagementObservation, EngagementReview } from "@ta-coach/shared";
+import type { EngagementObservation, EngagementReview } from "@cadence/shared";
 import type { ReviewContext } from "../context.ts";
 import { completeJson } from "../llm/client.ts";
 import { isMock } from "../llm/config.ts";

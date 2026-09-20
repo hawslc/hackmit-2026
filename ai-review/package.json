@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "TA Coach — agentic AI review of a teaching-practice transcript (delivery, scope, teaching skills, structure, engagement, confidence).",
+  "description": "Cadence — agentic AI review of a teaching-practice transcript (delivery, scope, teaching skills, structure, engagement, confidence).",
   "engines": {
     "node": ">=22.12"
   },
@@ -17,7 +17,7 @@
     "test": "tsx --test test/*.test.ts"
   },
   "dependencies": {
-    "@ta-coach/shared": "*",
+    "@cadence/shared": "*",
     "openai": "7.15.0"
   },
   "devDependencies": {

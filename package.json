@@ -1,9 +1,9 @@
 {
-  "name": "ta-coach",
+  "name": "cadence",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "TA Coach — practice teaching, get mentor-style AI review. Monorepo: client (React), server (Express), ai-review (LLM reviewers), shared (the contract between them).",
+  "description": "Cadence — practice teaching, get mentor-style AI review. Monorepo: client (React), server (Express), ai-review (LLM reviewers), shared (the contract between them).",
   "workspaces": [
     "shared",
     "client",

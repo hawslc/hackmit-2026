@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "TA Coach server — materials extraction + concept/review endpoints, wrapping ai-review as the LLM brain.",
+  "description": "Cadence server — materials extraction + concept/review endpoints, wrapping ai-review as the LLM brain.",
   "engines": {
     "node": ">=22.12"
   },
@@ -14,7 +14,7 @@
     "test": "tsx --test test/*.test.ts"
   },
   "dependencies": {
-    "@ta-coach/shared": "*",
+    "@cadence/shared": "*",
     "ai-review": "*",
     "express": "5.2.1",
     "fflate": "0.8.3",

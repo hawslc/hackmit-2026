@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import type { SessionReview } from "@ta-coach/shared";
+import type { SessionReview } from "@cadence/shared";
 import { isCoreGap, pickHighlighted, toReviewView } from "../src/lib/reviewView.ts";
 
 const ok = <T>(data: T) => ({ status: "ok", data }) as const;

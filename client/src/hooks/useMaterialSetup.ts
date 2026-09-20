@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { UPLOAD_LIMITS, type SourceFile } from "@ta-coach/shared";
+import { UPLOAD_LIMITS, type SourceFile } from "@cadence/shared";
 import { api } from "../api";
 import { tooManyFilesMessage, validateFile } from "../lib/validateFile";
 import type { Concept, LectureMaterial } from "../types";

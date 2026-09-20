@@ -1,5 +1,5 @@
 {
-  "name": "ta-practice-coach-client",
+  "name": "cadence-client",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,7 +11,7 @@
     "test": "tsx --test test/*.test.ts"
   },
   "dependencies": {
-    "@ta-coach/shared": "*",
+    "@cadence/shared": "*",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },

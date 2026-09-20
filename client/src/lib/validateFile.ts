@@ -1,4 +1,4 @@
-import { ACCEPTED_EXTENSIONS, UPLOAD_LIMITS } from "@ta-coach/shared";
+import { ACCEPTED_EXTENSIONS, UPLOAD_LIMITS } from "@cadence/shared";
 
 export const ACCEPT_ATTR = ACCEPTED_EXTENSIONS.join(",");
 

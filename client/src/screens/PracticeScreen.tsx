@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import type { SpeakingScoreComponents } from "@ta-coach/shared";
+import type { SpeakingScoreComponents } from "@cadence/shared";
 import { usePracticeSession } from "../live/usePracticeSession";
 import type { CompletedSession, LectureMaterial } from "../types";
 

@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import ContentGaps from "../components/ContentGaps";
 import DeliveryMetricsCard from "../components/DeliveryMetricsCard";
 import DevModal from "../components/DevModal";
 import FactualIssues from "../components/FactualIssues";
 import SectionCard from "../components/SectionCard";
 import { useReview } from "../hooks/useReview";
-import { pickHighlighted } from "../lib/reviewView";
+import { pickHighlighted, sectionHasContent } from "../lib/reviewView";
 import type { CompletedSession, LectureMaterial } from "../types";
 
 interface Props {
@@ -96,7 +95,9 @@ export default function ReviewScreen({ material, session, onPracticeAgain }: Pro
   }
 
   const { review } = state;
-  const highlighted = pickHighlighted(review.sections, 2);
+  // Only render sections that actually have something to show (skip empty/skipped/failed ones).
+  const sections = review.sections.filter(sectionHasContent);
+  const highlighted = pickHighlighted(sections, 2);
 
   return (
     <>
@@ -114,7 +115,7 @@ export default function ReviewScreen({ material, session, onPracticeAgain }: Pro
       <DeliveryMetricsCard session={session} />
 
       <div className="space-y-3">
-        {review.sections.map((section) => (
+        {sections.map((section) => (
           <SectionCard
             key={section.id}
             title={section.title}
@@ -124,7 +125,6 @@ export default function ReviewScreen({ material, session, onPracticeAgain }: Pro
         ))}
       </div>
 
-      <ContentGaps result={review.gaps} />
       <FactualIssues result={review.factualIssues} />
 
       <button type="button" onClick={onPracticeAgain} className={`${primaryButton} w-full`}>

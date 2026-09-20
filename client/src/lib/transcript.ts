@@ -1,4 +1,4 @@
-import type { WordTiming } from "@ta-coach/shared";
+import type { WordTiming } from "@cadence/shared";
 
 const DEFAULT_SEC_PER_WORD = 0.4;
 

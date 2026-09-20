@@ -2,7 +2,7 @@
 // folder implements it and `api/index.ts` wires it up, so callers only ever
 // see this interface.
 
-import type { SessionReview, SourceFile } from "@ta-coach/shared";
+import type { SessionReview, SourceFile } from "@cadence/shared";
 import type { CompletedSession, Concept, LectureMaterial } from "../types";
 
 export interface MaterialsApi {

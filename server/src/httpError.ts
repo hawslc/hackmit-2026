@@ -1,7 +1,7 @@
 // One error shape for the whole API: every non-2xx returns JSON `{ error }`,
-// (ApiErrorBody in @ta-coach/shared), which is what the client reads.
+// (ApiErrorBody in @cadence/shared), which is what the client reads.
 
-import type { ApiErrorBody } from "@ta-coach/shared";
+import type { ApiErrorBody } from "@cadence/shared";
 import type { ErrorRequestHandler } from "express";
 import { LlmError } from "ai-review";
 

@@ -1,4 +1,4 @@
-import type { Concept as WireConcept, ReviewRequestBody, SessionReview } from "@ta-coach/shared";
+import type { Concept as WireConcept, ReviewRequestBody, SessionReview } from "@cadence/shared";
 import type { Concept } from "../types";
 import { postJson } from "./http";
 import type { ReviewApi } from "./types";

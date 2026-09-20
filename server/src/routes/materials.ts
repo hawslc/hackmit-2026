@@ -1,8 +1,8 @@
-// Materials endpoints (contract types in @ta-coach/shared):
+// Materials endpoints (contract types in @cadence/shared):
 //   POST /file     multipart field "file"  -> SourceFile
 //   POST /concepts ExtractConceptsRequest  -> ExtractConceptsResponse
 
-import { type ExtractConceptsResponse, type SourceFile, UPLOAD_LIMITS } from "@ta-coach/shared";
+import { type ExtractConceptsResponse, type SourceFile, UPLOAD_LIMITS } from "@cadence/shared";
 import express from "express";
 import multer from "multer";
 import { extractConcepts } from "ai-review";

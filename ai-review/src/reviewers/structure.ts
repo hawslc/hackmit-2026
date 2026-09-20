@@ -1,6 +1,6 @@
 // Clarity & structure: lesson-level organization (macro), distinct from delivery.
 
-import type { StructureIssue, StructureReview } from "@ta-coach/shared";
+import type { StructureIssue, StructureReview } from "@cadence/shared";
 import type { ReviewContext } from "../context.ts";
 import { completeJson } from "../llm/client.ts";
 import { isMock } from "../llm/config.ts";

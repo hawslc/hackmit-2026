@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { SessionReview } from "@ta-coach/shared";
+import type { SessionReview } from "@cadence/shared";
 import type { CompletedSession, LectureMaterial } from "../types";
 
 interface Props {

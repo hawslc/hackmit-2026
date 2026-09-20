@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { SessionReview } from "@ta-coach/shared";
+import type { SessionReview } from "@cadence/shared";
 import { api } from "../api";
 import { toReviewView } from "../lib/reviewView";
 import type { CompletedSession, LectureMaterial, ReviewView } from "../types";

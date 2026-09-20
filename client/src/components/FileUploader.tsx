@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import type { UploadItem } from "../hooks/useMaterialSetup";
-import { UPLOAD_LIMITS } from "@ta-coach/shared";
+import { UPLOAD_LIMITS } from "@cadence/shared";
 import { ACCEPT_ATTR, formatSize } from "../lib/validateFile";
 
 interface Props {

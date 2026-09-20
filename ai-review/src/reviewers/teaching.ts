@@ -1,6 +1,6 @@
 // Teaching skills: three rubric categories scored 1–5 with a quote each.
 
-import type { TeachingCategory, TeachingReview, TeachingScore } from "@ta-coach/shared";
+import type { TeachingCategory, TeachingReview, TeachingScore } from "@cadence/shared";
 import type { ReviewContext } from "../context.ts";
 import { completeJson } from "../llm/client.ts";
 import { isMock } from "../llm/config.ts";
