@@ -105,7 +105,7 @@ where it came from (e.g. `week3.pptx · slide 7`).
 - **Failures stay contained.** Each reviewer returns `SectionResult` (ok / error / skipped) and has
   a 30s timeout. One failed call shows an inline error and the rest of the report still renders.
   No materials means the content section is skipped.
-- **One LLM helper.** Every step calls `completeJson()` in `server/src/llm/client.ts`. OpenAI and
+- **One LLM helper.** Every step calls `completeJson()` in `ai-review/src/llm/client.ts`. OpenAI and
   Llama both use the OpenAI chat API, so `LLM_PROVIDER` switches between them.
 - **Mock mode.** `LLM_PROVIDER=mock` gives each step canned output. The UI can be built with no
   keys, and it doubles as the demo fallback.
@@ -118,7 +118,7 @@ Prompting rules for every reviewer:
 
 ## Reading lecture files
 
-`server/src/materials/extract/` turns every supported format into text, using markdown headings
+`server/src/extract/` turns every supported format into text, using markdown headings
 (`## Slide 3`, `## Page 2`) so the LLM can cite sources.
 
 | Format | How | Notes |

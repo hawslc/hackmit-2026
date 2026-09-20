@@ -1,10 +1,10 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-// TODO(ux): replace DevHarness with the real Setup / Practice / Review screens.
-import { DevHarness } from './live/DevHarness';
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App";
+import "./index.css";
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <DevHarness />
-  </React.StrictMode>,
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
 );

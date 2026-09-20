@@ -1,0 +1,28 @@
+{
+  "name": "ai-review",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "TA Coach — agentic AI review of a teaching-practice transcript (delivery, scope, teaching skills, structure, engagement, confidence).",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "demo": "tsx demo/run.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@ta-coach/shared": "*",
+    "openai": "7.15.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.21",
+    "tsx": "4.20.6",
+    "typescript": "7.0.2"
+  }
+}

@@ -1,16 +1,38 @@
-import { Router } from 'express';
+// Materials endpoints (contract types in @ta-coach/shared):
+//   POST /file     multipart field "file"  -> SourceFile
+//   POST /concepts ExtractConceptsRequest  -> ExtractConceptsResponse
 
-export const materialsRouter = Router();
+import { type ExtractConceptsResponse, type SourceFile, UPLOAD_LIMITS } from "@ta-coach/shared";
+import express from "express";
+import multer from "multer";
+import { extractConcepts } from "ai-review";
+import { extractFile } from "../extract/index.ts";
+import { HttpError } from "../httpError.ts";
+import { parseExtractConceptsRequest } from "../validation.ts";
 
-// TODO(ux): POST /api/materials/file — one file per request, extract text
-// (see docs/design.md "Reading lecture files"), enforce UPLOAD_LIMITS,
-// return SourceFile.
-materialsRouter.post('/file', (_req, res) => {
-  res.status(501).json({ error: 'TODO(ux): file extraction not implemented' });
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: UPLOAD_LIMITS.maxBytes, files: 1 },
 });
 
-// TODO(ux) + TODO(ai): POST /api/materials/concepts — body { files: SourceFile[] },
-// run extractConcepts over the whole set, return { concepts: Concept[] }.
-materialsRouter.post('/concepts', (_req, res) => {
-  res.status(501).json({ error: 'TODO(ux): concept extraction not implemented' });
+export const materialsRouter = express.Router();
+
+materialsRouter.post("/file", upload.single("file"), async (req, res) => {
+  const file = req.file;
+  if (!file) throw new HttpError(400, 'No file uploaded (expected a form field named "file").');
+
+  const { text, truncated } = await extractFile(file.originalname, file.buffer);
+  const body: SourceFile = {
+    name: file.originalname,
+    text,
+    size: file.size,
+    ...(truncated ? { truncated: true } : {}),
+  };
+  res.json(body);
+});
+
+materialsRouter.post("/concepts", async (req, res) => {
+  const { files } = parseExtractConceptsRequest(req.body);
+  const concepts: ExtractConceptsResponse = await extractConcepts(files);
+  res.json(concepts); // bare array is what the client expects
 });

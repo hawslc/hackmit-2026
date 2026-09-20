@@ -4,7 +4,7 @@ import {
   SCORE_WEIGHTS,
   type DeliveryMetrics,
   type SpeakingScore,
-} from './index';
+} from "./live.ts";
 
 /**
  * Deterministic speaking score (0-100) from measured delivery metrics.

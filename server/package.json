@@ -1,24 +1,31 @@
 {
-  "name": "@hackmit/server",
-  "version": "0.0.0",
+  "name": "server",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
+  "description": "TA Coach server — materials extraction + concept/review endpoints, wrapping ai-review as the LLM brain.",
+  "engines": {
+    "node": ">=22.12"
+  },
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts"
   },
   "dependencies": {
-    "@hackmit/shared": "*",
-    "cors": "2.8.5",
-    "dotenv": "16.4.7",
-    "express": "4.21.2"
+    "@ta-coach/shared": "*",
+    "ai-review": "*",
+    "express": "5.2.1",
+    "fflate": "0.8.3",
+    "multer": "2.3.0",
+    "unpdf": "1.8.1"
   },
   "devDependencies": {
-    "@types/cors": "2.8.17",
-    "@types/express": "4.17.21",
-    "@types/node": "22.9.3",
-    "tsx": "4.19.2",
-    "typescript": "5.6.3"
+    "@types/express": "5.0.6",
+    "@types/multer": "2.2.0",
+    "@types/node": "22.19.21",
+    "tsx": "4.20.6",
+    "typescript": "7.0.2"
   }
 }

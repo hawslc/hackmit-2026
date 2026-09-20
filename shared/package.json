@@ -1,16 +1,17 @@
 {
-  "name": "@hackmit/shared",
-  "version": "0.0.0",
+  "name": "@ta-coach/shared",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
+  "description": "TA Coach shared contract — the types and constants that cross the client / server / ai-review boundaries. Source-only: consumers import the TypeScript directly.",
+  "main": "src/index.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./speakingScore": "./src/speakingScore.ts"
+    ".": "./src/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "typescript": "5.6.3"
+    "typescript": "7.0.2"
   }
 }

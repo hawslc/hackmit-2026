@@ -6,9 +6,9 @@ import {
   type DeliveryMetrics,
   type Pause,
   type PitchSummary,
-  type TranscriptWord,
+  type WordTiming,
   type VolumeSummary,
-} from '@hackmit/shared';
+} from '@ta-coach/shared';
 
 const FILLER_REGEX = new RegExp(
   `\\b(${FILLER_PHRASES.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`,
@@ -21,7 +21,7 @@ const FILLER_REGEX = new RegExp(
  * for the live meters, and once more at "Finish" for the final numbers.
  */
 export class MetricsAccumulator {
-  private words: TranscriptWord[] = [];
+  private words: WordTiming[] = [];
   private committedText = '';
   private synthesized = false;
   private readonly startedAtMs: number;
@@ -30,7 +30,7 @@ export class MetricsAccumulator {
     this.startedAtMs = startedAtMs;
   }
 
-  addCommitted(text: string, words: TranscriptWord[]): void {
+  addCommitted(text: string, words: WordTiming[]): void {
     this.committedText += (this.committedText && text ? ' ' : '') + text;
     this.words.push(...words);
     this.words.sort((a, b) => a.start - b.start);
@@ -40,7 +40,7 @@ export class MetricsAccumulator {
     return this.committedText;
   }
 
-  get allWords(): TranscriptWord[] {
+  get allWords(): WordTiming[] {
     return this.words;
   }
 
@@ -102,7 +102,7 @@ export function countFillers(text: string): number {
 export function synthesizeWords(
   transcript: string,
   durationSec: number,
-): TranscriptWord[] {
+): WordTiming[] {
   const texts = transcript.trim().split(/\s+/).filter(Boolean);
   if (texts.length === 0 || durationSec <= 0) return [];
   const slot = durationSec / texts.length;
@@ -113,7 +113,7 @@ export function synthesizeWords(
   }));
 }
 
-function findPauses(words: TranscriptWord[]): { count: number; totalSec: number; list: Pause[] } {
+function findPauses(words: WordTiming[]): { count: number; totalSec: number; list: Pause[] } {
   let count = 0;
   let totalSec = 0;
   const list: Pause[] = [];

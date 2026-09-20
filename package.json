@@ -1,14 +1,22 @@
 {
-  "name": "hackmit-2026",
+  "name": "ta-coach",
+  "version": "0.1.0",
   "private": true,
+  "type": "module",
+  "description": "TA Coach — practice teaching, get mentor-style AI review. Monorepo: client (React), server (Express), ai-review (LLM reviewers), shared (the contract between them).",
   "workspaces": [
     "shared",
+    "client",
     "server",
-    "client"
+    "ai-review"
   ],
   "scripts": {
-    "dev:server": "npm run dev --workspace server",
-    "dev:client": "npm run dev --workspace client",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "dev": "concurrently -n server,client -c blue,green \"npm -w server run dev\" \"npm -w client run dev\"",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "10.0.5"
   }
 }

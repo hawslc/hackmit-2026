@@ -1,16 +1,26 @@
 # hackmit-2026
+
 hackmit project for 2026, education track
 
-## Development
+## Layout
 
-```sh
-npm install                       # one-time, installs all workspaces
-cp server/.env.example server/.env  # then add ELEVENLABS_API_KEY
-npm run dev:server                # API on :3001
-npm run dev:client                # vite dev server on :5173 (proxies /api)
-npm run typecheck                 # all workspaces
+An npm-workspaces monorepo:
+
+| Package | What it is |
+|---|---|
+| [`shared/`](shared/src) | The contract: every type and constant that crosses client / server / ai-review. Source-only. |
+| [`client/`](client/src) | React + Vite app (Setup → Practice → Review). `src/api/` holds the real HTTP client and a mock; `VITE_USE_MOCK_API` picks one. |
+| [`server/`](server/src) | Express: file extraction, request validation, and routes that wrap `ai-review`. Holds no state. |
+| [`ai-review/`](ai-review) | The LLM reviewers, orchestrator and synthesizer. See its README. |
+
+Change a type in `shared/` and every package that disagrees stops compiling. Docs live in [`docs/`](docs).
+
+## Commands
+
+```bash
+npm install
+npm run dev         # server + client
+npm run typecheck   # every workspace
+npm test            # every workspace (offline, mock LLM provider)
+npm run build
 ```
-
-- `shared/` — client↔server contract types + `computeSpeakingScore`. Announce changes in the team chat.
-- `client/src/live/` — live capture: mic, Scribe realtime, recorder, pitch/volume, metrics. `DevHarness` is a scratch page until the real screens land.
-- `server/src/routes/` — `/api/scribe-token` is live; `materials` and `review` are `TODO(ux)`/`TODO(ai)` stubs.

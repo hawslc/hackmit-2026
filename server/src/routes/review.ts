@@ -1,13 +1,18 @@
-import type { ReviewRequest } from '@hackmit/shared';
-import { Router } from 'express';
+// POST /api/review: wraps ai-review's runReview. With LLM_PROVIDER unset,
+// ai-review defaults to mock, so this returns a full canned SessionReview offline.
 
-export const reviewRouter = Router();
+import type { SessionReview } from "@ta-coach/shared";
+import express from "express";
+import { runReview } from "ai-review";
+import { materialToLessonPlan } from "../lessonPlan.ts";
+import { parseReviewRequest } from "../validation.ts";
 
-// TODO(ai): POST /api/review — body ReviewRequest, run the three reviewers
-// (delivery tips / content gaps / teaching skills) in parallel with 30s
-// timeouts, then synthesize. LLM_PROVIDER=mock returns canned output.
-// See docs/design.md "AI review pipeline" and docs/rubric.md.
-reviewRouter.post('/review', (req, res) => {
-  const _body = req.body as ReviewRequest;
-  res.status(501).json({ error: 'TODO(ai): review pipeline not implemented' });
+export const reviewRouter = express.Router();
+
+reviewRouter.post("/", async (req, res) => {
+  const { words, material } = parseReviewRequest(req.body);
+  const lessonPlan = material && materialToLessonPlan(material);
+
+  const review: SessionReview = await runReview({ words, lessonPlan });
+  res.json(review);
 });

@@ -1,4 +1,4 @@
-import type { ScribeTokenResponse, TranscriptWord } from '@hackmit/shared';
+import type { ScribeTokenResponse, WordTiming } from '@ta-coach/shared';
 
 /**
  * Scribe v2 Realtime over a raw WebSocket. We own the MediaStream (shared
@@ -64,7 +64,7 @@ export interface ScribeHandlers {
   /** Live, still-changing transcript for the current segment. */
   onPartial?: (text: string) => void;
   /** Final text for a segment plus its word-level timestamps. */
-  onCommitted?: (text: string, words: TranscriptWord[]) => void;
+  onCommitted?: (text: string, words: WordTiming[]) => void;
   onError?: (message: string) => void;
 }
 
@@ -311,9 +311,9 @@ function scribeParams(token: string): string {
   }).toString();
 }
 
-function parseWords(raw: unknown): TranscriptWord[] {
+function parseWords(raw: unknown): WordTiming[] {
   if (!Array.isArray(raw)) return [];
-  const words: TranscriptWord[] = [];
+  const words: WordTiming[] = [];
   for (const w of raw) {
     if (
       w &&

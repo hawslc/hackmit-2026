@@ -4,7 +4,7 @@ import {
   type Pause,
   type PitchSummary,
   type VolumeSummary,
-} from '@hackmit/shared';
+} from '@ta-coach/shared';
 
 export interface InstantAudio {
   pitchHz: number | null;

@@ -1,10 +1,10 @@
-import { computeSpeakingScore } from '@hackmit/shared/speakingScore';
-import type {
-  CompletedSession,
-  DeliveryMetrics,
-  SpeakingScore,
-} from '@hackmit/shared';
+import {
+  computeSpeakingScore,
+  type DeliveryMetrics,
+  type SpeakingScore,
+} from '@ta-coach/shared';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { CompletedSession } from '../types';
 import { AudioFeatureSampler, type InstantAudio } from './audioFeatures';
 import { MetricsAccumulator, synthesizeWords } from './metrics';
 import { SessionRecorder } from './recorder';
@@ -31,10 +31,13 @@ export interface LiveSnapshot {
 const LIVE_TICK_MS = 250;
 
 /**
- * Orchestrates one practice session: "Start practice" acquires the mic once
- * and fans the stream out to Scribe (live transcript), the audio-feature
- * sampler (pitch/volume) and the recorder. "Finish" stops everything and
- * returns a CompletedSession for the review request.
+ * Orchestrates one practice session: "Start practice" fans one mic stream out
+ * to Scribe (live transcript), the audio-feature sampler (pitch/volume) and
+ * the recorder. "Finish" stops everything and returns a CompletedSession for
+ * the review request.
+ *
+ * `start()` acquires the mic itself; pass an already-open stream (e.g. one the
+ * setup screen opened) to reuse it — borrowed streams are not released here.
  */
 export function usePracticeSession() {
   const [phase, setPhase] = useState<SessionPhase>('idle');
@@ -42,13 +45,18 @@ export function usePracticeSession() {
   const [session, setSession] = useState<CompletedSession | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const mic = useMicrophone();
+  const { acquire: acquireMic, release: releaseMic } = useMicrophone();
   const accumulatorRef = useRef<MetricsAccumulator | null>(null);
   const samplerRef = useRef<AudioFeatureSampler | null>(null);
   const recorderRef = useRef<SessionRecorder | null>(null);
   const scribeRef = useRef<ScribeRealtime | null>(null);
   const tickRef = useRef<number | null>(null);
   const partialRef = useRef('');
+  const ownsStreamRef = useRef(false);
+  // start() is async; a StrictMode remount or unmount mid-start bumps `gen` so
+  // the stale attempt abandons itself instead of clobbering the live session.
+  const genRef = useRef(0);
+  const busyRef = useRef(false);
 
   const takeSnapshot = useCallback((): LiveSnapshot | null => {
     const acc = accumulatorRef.current;
@@ -73,30 +81,40 @@ export function usePracticeSession() {
     };
   }, []);
 
-  const start = useCallback(async () => {
-    if (phase === 'starting' || phase === 'recording' || phase === 'stopping') {
+  const releaseStream = useCallback(() => {
+    if (ownsStreamRef.current) releaseMic();
+    ownsStreamRef.current = false;
+  }, [releaseMic]);
+
+  const start = useCallback(async (existingStream?: MediaStream) => {
+    if (busyRef.current || phase === 'recording' || phase === 'stopping') {
       return;
     }
+    busyRef.current = true;
+    const gen = ++genRef.current;
     setError(null);
     setSession(null);
     setPhase('starting');
+    // Pipeline pieces stay local until they're all live, so a stale attempt
+    // (gen bumped by unmount/restart) cleans up only what it created.
+    let sampler: AudioFeatureSampler | null = null;
+    let recorder: SessionRecorder | null = null;
+    let scribe: ScribeRealtime | null = null;
+    const stale = () => genRef.current !== gen;
     try {
-      const stream = await mic.acquire();
+      ownsStreamRef.current = !existingStream;
+      const stream = existingStream ?? (await acquireMic());
+      if (stale()) return;
 
       const accumulator = new MetricsAccumulator(Date.now());
-      accumulatorRef.current = accumulator;
       partialRef.current = '';
 
-      const sampler = new AudioFeatureSampler();
+      sampler = new AudioFeatureSampler();
       sampler.start(stream);
-      samplerRef.current = sampler;
-
-      const recorder = new SessionRecorder();
+      recorder = new SessionRecorder();
       recorder.start(stream);
-      recorderRef.current = recorder;
 
-      const scribe = new ScribeRealtime();
-      scribeRef.current = scribe;
+      scribe = new ScribeRealtime();
       await scribe.connect(stream, {
         onPartial: (text) => {
           partialRef.current = text;
@@ -107,17 +125,39 @@ export function usePracticeSession() {
         },
         onError: (message) => setError(message),
       });
+      if (stale()) return;
+
+      accumulatorRef.current = accumulator;
+      samplerRef.current = sampler;
+      recorderRef.current = recorder;
+      scribeRef.current = scribe;
 
       tickRef.current = window.setInterval(() => {
         setLive(takeSnapshot());
       }, LIVE_TICK_MS);
       setPhase('recording');
     } catch (e) {
-      await teardown(scribeRef, samplerRef, recorderRef, mic.release);
+      genRef.current++;
+      if (tickRef.current != null) window.clearInterval(tickRef.current);
+      await teardown(scribeRef, samplerRef, recorderRef, releaseStream);
+      await scribe?.stop().catch(() => {});
+      await sampler?.stop().catch(() => {});
+      await recorder?.stop().catch(() => {});
       setError(e instanceof Error ? e.message : String(e));
       setPhase('error');
+    } finally {
+      busyRef.current = false;
+      if (stale()) {
+        // A newer start (or unmount) superseded this one: drop this attempt's
+        // pieces without touching the refs the live session now owns.
+        void scribe?.stop().catch(() => {});
+        void sampler?.stop().catch(() => {});
+        void recorder?.stop().catch(() => {});
+        if (ownsStreamRef.current) releaseMic();
+        ownsStreamRef.current = false;
+      }
     }
-  }, [phase, mic, takeSnapshot]);
+  }, [phase, acquireMic, releaseMic, takeSnapshot, releaseStream]);
 
   const finish = useCallback(async (): Promise<CompletedSession | null> => {
     if (phase !== 'recording') return null;
@@ -131,7 +171,7 @@ export function usePracticeSession() {
       volume: null,
     };
     await samplerRef.current?.stop();
-    mic.release();
+    releaseStream();
 
     const acc = accumulatorRef.current;
     if (!acc) {
@@ -151,6 +191,7 @@ export function usePracticeSession() {
     const completed: CompletedSession = {
       transcript: acc.transcript,
       words: acc.allWords,
+      durationSec: metrics.durationSec,
       metrics,
       recording,
     };
@@ -158,14 +199,16 @@ export function usePracticeSession() {
     setLive(null);
     setPhase('done');
     return completed;
-  }, [phase, mic]);
+  }, [phase, releaseStream]);
 
   useEffect(
     () => () => {
+      genRef.current++;
+      busyRef.current = false;
       if (tickRef.current != null) window.clearInterval(tickRef.current);
-      void teardown(scribeRef, samplerRef, recorderRef, () => {});
+      void teardown(scribeRef, samplerRef, recorderRef, releaseStream);
     },
-    [],
+    [releaseStream],
   );
 
   return { phase, live, session, error, start, finish };
