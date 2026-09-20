@@ -18,7 +18,7 @@ export type SessionPhase =
   | "done"
   | "error";
 
-/** Live snapshot for the meters, refreshed ~7x/sec while recording. */
+/** Live snapshot for the meters, refreshed ~3x/sec while recording. */
 export interface LiveSnapshot {
   metrics: DeliveryMetrics;
   score: SpeakingScore;
@@ -29,7 +29,7 @@ export interface LiveSnapshot {
   pausedNowSec: number;
 }
 
-const LIVE_TICK_MS = 150;
+const LIVE_TICK_MS = 300;
 
 /**
  * Orchestrates one practice session. The mic stream is opened by Setup and

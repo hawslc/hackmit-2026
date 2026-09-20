@@ -5,9 +5,9 @@ import { MetricsAccumulator } from "../src/live/metrics.ts";
 describe("MetricsAccumulator.snapshot pendingText", () => {
   it("counts in-flight partial words and fillers toward live metrics", () => {
     const acc = new MetricsAccumulator(0);
-    acc.addCommitted("um so the base case", [
+    acc.addCommitted("um and the base case", [
       { text: "um", start: 0, end: 0.3 },
-      { text: "so", start: 0.4, end: 0.5 },
+      { text: "and", start: 0.4, end: 0.5 },
       { text: "the", start: 0.5, end: 0.6 },
       { text: "base", start: 0.6, end: 0.8 },
       { text: "case", start: 0.8, end: 1.0 },
@@ -15,7 +15,7 @@ describe("MetricsAccumulator.snapshot pendingText", () => {
 
     const live = acc.snapshot(60_000, null, null, undefined, "uh is like this");
     assert.equal(live.wordCount, 9);
-    assert.equal(live.fillerCount, 4); // um, so, uh, like
+    assert.equal(live.fillerCount, 3); // um, uh, like
     assert.equal(live.wpm, 9);
   });
 

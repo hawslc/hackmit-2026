@@ -23,7 +23,7 @@ const PITCH_HOLD_MS = 400;
 const PAUSE_RMS_FLOOR = 0.006;
 const MIN_PITCH_HZ = 50;
 const MAX_PITCH_HZ = 500;
-const MIN_CORRELATION = 0.3;
+const MIN_CORRELATION = 0.45;
 
 /**
  * Taps a MediaStream with Web Audio and samples pitch (autocorrelation) and
@@ -85,20 +85,21 @@ export class AudioFeatureSampler {
     const stable = this.pitchSamples.filter(
       (hz) => hz >= medianHz / 2 && hz <= medianHz * 2,
     );
+    // 3-point median smooths single-frame autocorrelation jumps, which
+    // otherwise inflate the semitone stddev even on monotone speech.
+    const smoothed = medianSmooth3(stable);
     const pitch =
-      stable.length >= 3
+      smoothed.length >= 3
         ? {
-            meanHz: mean(stable),
-            variationSemitones: semitoneStddev(stable),
+            meanHz: mean(smoothed),
+            variationSemitones: semitoneStddev(smoothed),
           }
         : null;
     const volume =
       this.rmsSamples.length >= 3
         ? {
             meanRms: mean(this.rmsSamples),
-            variation: mean(this.rmsSamples) > 0
-              ? stddev(this.rmsSamples) / mean(this.rmsSamples)
-              : 0,
+            variation: steadyVariation(this.rmsSamples),
           }
         : null;
     return { pitch, volume };
@@ -211,6 +212,32 @@ function stddev(xs: number[]): number {
 function semitoneStddev(hzSamples: number[]): number {
   const semitones = hzSamples.map((hz) => 12 * Math.log2(hz));
   return stddev(semitones);
+}
+
+/**
+ * Coefficient of variation of loudness over ~500ms buckets. Raw 50ms samples
+ * are spiky by nature (syllable peaks vs the dips between them) — a steady
+ * speaking voice still shows CV ~0.5+ — so we measure drift in projection,
+ * not per-syllable dynamics. rmsSamples holds voiced samples only, so a
+ * bucket is roughly 500ms of speech.
+ */
+function steadyVariation(rmsSamples: number[]): number {
+  const bucketSize = Math.round(500 / SAMPLE_INTERVAL_MS);
+  const buckets: number[] = [];
+  for (let i = 0; i + bucketSize <= rmsSamples.length; i += bucketSize) {
+    buckets.push(mean(rmsSamples.slice(i, i + bucketSize)));
+  }
+  if (buckets.length < 2) return 0;
+  const m = mean(buckets);
+  return m > 0 ? stddev(buckets) / m : 0;
+}
+
+/** Sliding 3-point median — drops isolated spikes, keeps real pitch moves. */
+function medianSmooth3(xs: number[]): number[] {
+  return xs.map((_, i) => {
+    const w = xs.slice(Math.max(0, i - 1), i + 2);
+    return median(w);
+  });
 }
 
 function median(xs: number[]): number {

@@ -68,9 +68,6 @@ export const FILLER_PHRASES = [
   "um",
   "uh",
   "like",
-  "so",
-  "basically",
-  "actually",
   "you know",
   "i mean",
   "kind of",
@@ -81,8 +78,8 @@ export const SCORE_BANDS = {
   wpm: { good: [130, 160], zero: [80, 220] },
   fillersPerMin: { goodBelow: 3, zeroAt: 12 },
   pausesPerMin: { good: [0.5, 5], zeroAt: 10 },
-  semitoneVariationFull: 3,
-  rmsFullMark: 0.03,
+  semitoneVariationFull: 4,
+  rmsFullMark: 0.012,
 } as const;
 
 /** Rate metrics (fillers/min, pauses/min) are computed over at least this many
