@@ -17,7 +17,7 @@ const FILLER_REGEX = new RegExp(
 
 /**
  * Accumulates committed transcript words over a session and produces a
- * DeliveryMetrics snapshot on demand — cheap enough to call every ~250ms
+ * DeliveryMetrics snapshot on demand — cheap enough to call every ~100ms
  * for the live meters, and once more at "Finish" for the final numbers.
  */
 export class MetricsAccumulator {
@@ -55,12 +55,16 @@ export class MetricsAccumulator {
   /**
    * acousticPauses comes from the RMS envelope (silence detection) and is
    * preferred; when absent, pauses fall back to gaps between word timestamps.
+   * pendingText is Scribe's in-flight partial — counted toward live word/filler
+   * numbers so the meters move mid-sentence. It clears when the segment commits,
+   * so committed data stays authoritative; only live snapshots see it.
    */
   snapshot(
     nowMs = Date.now(),
     pitch: PitchSummary | null = null,
     volume: VolumeSummary | null = null,
     acousticPauses?: Pause[],
+    pendingText = "",
   ): DeliveryMetrics {
     const durationSec = Math.max(0, (nowMs - this.startedAtMs) / 1000);
     const minutes = durationSec / 60;
@@ -72,11 +76,15 @@ export class MetricsAccumulator {
           list: acousticPauses,
         }
       : findPauses(this.words);
-    const fillerCount = countFillers(this.committedText);
+    const pendingWords = pendingText.trim().split(/\s+/).filter(Boolean).length;
+    const wordCount = this.words.length + pendingWords;
+    const fillerCount = countFillers(
+      pendingText ? `${this.committedText} ${pendingText}` : this.committedText,
+    );
     return {
       durationSec: round1(durationSec),
-      wordCount: this.words.length,
-      wpm: minutes > 0 ? round1(this.words.length / minutes) : 0,
+      wordCount,
+      wpm: minutes > 0 ? round1(wordCount / minutes) : 0,
       pauseCount: pauses.count,
       totalPauseSec: round1(pauses.totalSec),
       pauses: pauses.list,

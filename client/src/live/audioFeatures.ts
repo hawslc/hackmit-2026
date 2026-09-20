@@ -88,6 +88,28 @@ export class AudioFeatureSampler {
     return { pitch, volume };
   }
 
+  /** Adaptive silence cutoff: max(floor, 3x the 20th-percentile RMS). */
+  private silenceThreshold(): number {
+    const sorted = this.envelope.map((e) => e.rms).sort((a, b) => a - b);
+    const noiseFloor = sorted[Math.floor(sorted.length * 0.2)] ?? 0;
+    return Math.max(PAUSE_RMS_FLOOR, noiseFloor * 3);
+  }
+
+  /** Length of the ongoing silence run in seconds — 0 while speech is voiced.
+   *  Lets the UI show "pausing…" live, before the run is long enough to count
+   *  in detectPauses. */
+  currentSilenceSec(): number {
+    if (this.envelope.length === 0) return 0;
+    const threshold = this.silenceThreshold();
+    let runStartMs: number | null = null;
+    for (let i = this.envelope.length - 1; i >= 0; i--) {
+      if (this.envelope[i]!.rms >= threshold) break;
+      runStartMs = this.envelope[i]!.tMs;
+    }
+    if (runStartMs == null) return 0;
+    return (this.envelope[this.envelope.length - 1]!.tMs - runStartMs) / 1000;
+  }
+
   /**
    * Silence runs >= minDurationSec, bounded by voiced audio on both sides —
    * so leading silence before the first word and trailing silence before
@@ -95,9 +117,7 @@ export class AudioFeatureSampler {
    */
   detectPauses(minDurationSec = PAUSE_THRESHOLD_SEC): Pause[] {
     if (this.envelope.length < 4) return [];
-    const sorted = this.envelope.map((e) => e.rms).sort((a, b) => a - b);
-    const noiseFloor = sorted[Math.floor(sorted.length * 0.2)] ?? 0;
-    const threshold = Math.max(PAUSE_RMS_FLOOR, noiseFloor * 3);
+    const threshold = this.silenceThreshold();
 
     const pauses: Pause[] = [];
     let runStartMs: number | null = null;

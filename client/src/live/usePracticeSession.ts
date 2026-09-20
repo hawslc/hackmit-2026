@@ -18,16 +18,18 @@ export type SessionPhase =
   | "done"
   | "error";
 
-/** Live snapshot for the meters, refreshed ~4x/sec while recording. */
+/** Live snapshot for the meters, refreshed ~10x/sec while recording. */
 export interface LiveSnapshot {
   metrics: DeliveryMetrics;
   score: SpeakingScore;
   instant: InstantAudio;
   transcript: string;
   partial: string;
+  /** Length of the ongoing silence run in seconds (0 while speaking). */
+  pausedNowSec: number;
 }
 
-const LIVE_TICK_MS = 250;
+const LIVE_TICK_MS = 100;
 
 /**
  * Orchestrates one practice session. The mic stream is opened by Setup and
@@ -62,6 +64,7 @@ export function usePracticeSession() {
       pitch,
       volume,
       samplerRef.current?.detectPauses(),
+      partialRef.current,
     );
     return {
       metrics,
@@ -69,6 +72,7 @@ export function usePracticeSession() {
       instant,
       transcript: acc.transcript,
       partial: partialRef.current,
+      pausedNowSec: samplerRef.current?.currentSilenceSec() ?? 0,
     };
   }, []);
 

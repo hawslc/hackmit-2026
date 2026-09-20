@@ -136,7 +136,15 @@ export default function PracticeScreen({ material, stream, onFinish, onCancel }:
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Stat label="Words / min" value={m ? Math.round(m.wpm) : "—"} />
         <Stat label="Fillers / min" value={m ? m.fillersPerMin.toFixed(1) : "—"} />
-        <Stat label="Pauses" value={m ? m.pauseCount : "—"} />
+        <Stat
+          label="Pauses"
+          value={m ? m.pauseCount : "—"}
+          hint={
+            live && live.pausedNowSec >= 0.3
+              ? `pausing ${live.pausedNowSec.toFixed(1)}s`
+              : undefined
+          }
+        />
         <Stat label="Pitch" value={live?.instant.pitchHz ? `${Math.round(live.instant.pitchHz)} Hz` : "—"} />
         <Stat label="Volume" value={live ? live.instant.rms.toFixed(3) : "—"} />
         <Stat label="Words" value={m ? m.wordCount : "—"} />
@@ -166,11 +174,13 @@ export default function PracticeScreen({ material, stream, onFinish, onCancel }:
   );
 }
 
-function Stat({ label, value }: { label: string; value: string | number }) {
+function Stat({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
   return (
     <div className="rounded-xl bg-white p-4 text-center ring-1 ring-slate-200">
       <p className="text-xl font-semibold tabular-nums text-slate-800">{value}</p>
       <p className="mt-0.5 text-xs text-slate-500">{label}</p>
+      {/* Fixed height so the grid doesn't jump when the hint appears. */}
+      <p className="min-h-4 text-xs text-amber-600">{hint ?? ""}</p>
     </div>
   );
 }
