@@ -79,7 +79,6 @@ export async function completeJson<T>(args: CompleteJsonArgs, cfg: ResolvedConfi
       const res = await openai.chat.completions.create(
         {
           model: cfg.model,
-          temperature: 0.2,
           response_format,
           messages: [
             { role: "system", content: args.system },
