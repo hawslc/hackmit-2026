@@ -53,11 +53,21 @@ export interface SectionFeedback {
   quote?: string;
 }
 
+/** One concept and whether the TA covered it — rendered color-coded in the Content section. */
+export interface ConceptCoverageItem {
+  name: string;
+  status: CoverageStatus;
+  /** The reviewer's note (for gaps) or supporting quote (for covered concepts). */
+  detail?: string;
+}
+
 export interface SectionDetail {
   /** 0-100. Only sections with something measurable have one (content, teaching). */
   score?: number;
   summary: string;
   feedback: SectionFeedback[];
+  /** Present only on the Content section: the full per-concept coverage breakdown. */
+  concepts?: ConceptCoverageItem[];
 }
 
 /** Each part of a review can succeed, fail or be skipped on its own ("failures stay contained"). */

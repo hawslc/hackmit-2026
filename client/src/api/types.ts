@@ -1,5 +1,6 @@
-// What the rest of the client sees of the backend. `http` and `mock` each
-// implement it, and `api/index.ts` picks one, so callers never know which.
+// What the rest of the client sees of the backend. The HTTP client in this
+// folder implements it and `api/index.ts` wires it up, so callers only ever
+// see this interface.
 
 import type { SessionReview, SourceFile } from "@ta-coach/shared";
 import type { CompletedSession, Concept, LectureMaterial } from "../types";

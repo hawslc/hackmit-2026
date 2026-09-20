@@ -9,7 +9,7 @@ An npm-workspaces monorepo:
 | Package | What it is |
 |---|---|
 | [`shared/`](shared/src) | The contract: every type and constant that crosses client / server / ai-review. Source-only. |
-| [`client/`](client/src) | React + Vite app (Setup → Practice → Review). `src/api/` holds the real HTTP client and a mock; `VITE_USE_MOCK_API` picks one. |
+| [`client/`](client/src) | React + Vite app (Setup → Practice → Review). `src/api/` is the HTTP client that talks to the server. |
 | [`server/`](server/src) | Express: file extraction, request validation, and routes that wrap `ai-review`. Holds no state. |
 | [`ai-review/`](ai-review) | The LLM reviewers, orchestrator and synthesizer. See its README. |
 

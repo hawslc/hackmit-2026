@@ -4,6 +4,7 @@
 import type {
   ConfidenceReview,
   CoverageReview,
+  CoverageStatus,
   DeliveryReview,
   EngagementReview,
   SectionResult,
@@ -36,14 +37,19 @@ function deliveryDetail({ note, moments }: DeliveryReview): SectionDetail {
   return { summary: note, feedback: moments.map((m) => ({ point: m.suggestion, quote: m.quote })) };
 }
 
+// Covered first, then partial, then missing — so the wins group at the top and the
+// gaps are easy to scan. Stable sort keeps each group in the reviewer's order.
+const COVERAGE_ORDER: Record<CoverageStatus, number> = { covered: 0, partial: 1, missing: 2 };
+
 function contentDetail({ concepts, coveredCount, totalCount }: CoverageReview): SectionDetail {
   const partial = concepts.filter((c) => c.status === "partial").length;
   return {
     score: totalCount === 0 ? undefined : percent((coveredCount + partial / 2) / totalCount),
     summary: `You covered ${coveredCount} of ${totalCount} concepts.`,
-    feedback: concepts
-      .filter((c) => c.status !== "covered")
-      .map((c) => ({ point: c.note || `${c.name} wasn't fully covered.`, quote: c.evidence || undefined })),
+    feedback: [],
+    concepts: [...concepts]
+      .sort((a, b) => COVERAGE_ORDER[a.status] - COVERAGE_ORDER[b.status])
+      .map((c) => ({ name: c.name, status: c.status, detail: c.note || c.evidence || undefined })),
   };
 }
 

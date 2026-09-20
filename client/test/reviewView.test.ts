@@ -73,6 +73,15 @@ describe("toReviewView", () => {
     assert.match(detail("confidence").summary, /4\.3 filler words per minute/);
   });
 
+  it("breaks content down per concept, covered first then gaps", () => {
+    const { concepts } = detail("content");
+    assert.deepEqual(
+      concepts?.map((c) => [c.name, c.status]),
+      [["A", "covered"], ["B", "partial"], ["C", "missing"], ["D", "missing"]],
+    );
+    assert.equal(concepts?.find((c) => c.name === "B")?.detail, "In passing.");
+  });
+
   it("lists only uncovered concepts as gaps", () => {
     assert.equal(view.gaps.status, "ok");
     const gaps = view.gaps.status === "ok" ? view.gaps.data : [];

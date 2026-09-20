@@ -1,5 +1,5 @@
-import type { SectionResult } from "@ta-coach/shared";
-import type { SectionDetail } from "../types";
+import type { CoverageStatus, SectionResult } from "@ta-coach/shared";
+import type { ConceptCoverageItem, SectionDetail } from "../types";
 
 interface Props {
   title: string;
@@ -9,6 +9,35 @@ interface Props {
 }
 
 const card = "rounded-2xl bg-white p-5 ring-1 ring-slate-200";
+
+// Green = covered, amber = partly, red = not covered.
+const COVERAGE: Record<CoverageStatus, { label: string; row: string; pill: string; dot: string }> = {
+  covered: { label: "Covered", row: "bg-emerald-50", pill: "bg-emerald-100 text-emerald-800", dot: "bg-emerald-500" },
+  partial: { label: "Partly covered", row: "bg-amber-50", pill: "bg-amber-100 text-amber-900", dot: "bg-amber-500" },
+  missing: { label: "Not covered", row: "bg-red-50", pill: "bg-red-100 text-red-800", dot: "bg-red-500" },
+};
+
+function CoverageList({ concepts }: { concepts: ConceptCoverageItem[] }) {
+  return (
+    <ul className="mt-4 space-y-2">
+      {concepts.map((c, i) => {
+        const s = COVERAGE[c.status];
+        return (
+          <li key={i} className={`flex items-start justify-between gap-3 rounded-lg px-3 py-2 ${s.row}`}>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className={`size-2 shrink-0 rounded-full ${s.dot}`} aria-hidden />
+                <span className="text-sm font-medium text-slate-800">{c.name}</span>
+              </div>
+              {c.detail && <p className="mt-1 pl-4 text-xs text-slate-500">{c.detail}</p>}
+            </div>
+            <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${s.pill}`}>{s.label}</span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
 
 // Encouraging palette: never red.
 function pillClass(score: number) {
@@ -38,7 +67,7 @@ export default function SectionCard({ title, result, highlighted }: Props) {
     );
   }
 
-  const { score, summary, feedback } = result.data;
+  const { score, summary, feedback, concepts } = result.data;
   // Unscored sections have nothing else to show, so their feedback is always visible.
   const showFeedback = (highlighted || score === undefined) && feedback.length > 0;
   return (
@@ -55,6 +84,9 @@ export default function SectionCard({ title, result, highlighted }: Props) {
         {score !== undefined && <ScorePill score={score} />}
       </div>
       <p className="mt-2 text-sm text-slate-600">{summary}</p>
+
+      {/* Content section: always show the per-concept covered/not-covered breakdown. */}
+      {concepts && concepts.length > 0 && <CoverageList concepts={concepts} />}
 
       {showFeedback && (
         <ul className="mt-4 space-y-3">
