@@ -101,6 +101,17 @@ export default function ReviewScreen({ material, session, onPracticeAgain }: Pro
       <main className="mx-auto min-h-screen max-w-xl space-y-6 px-4 py-8">
         <DeliveryMetricsCard session={session} />
 
+        <section className="rounded-2xl bg-white p-5 ring-1 ring-slate-200">
+          <h2 className="text-sm font-semibold tracking-wide text-slate-500 uppercase">
+            Transcript
+          </h2>
+          <p className="mt-2 max-h-48 overflow-y-auto text-sm leading-relaxed text-slate-700">
+            {session.transcript.trim() || (
+              <span className="text-slate-400">No speech was captured in this session.</span>
+            )}
+          </p>
+        </section>
+
         {coached ? (
           <div className="space-y-3">
             <CoachingCardView card={review.focus!} />
