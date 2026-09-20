@@ -56,11 +56,11 @@ export default function DeliveryMetricsCard({ session }: Props) {
       </div>
 
       <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Metric label="Words / min" value={Math.round(metrics.wpm)} />
-        <Metric label="Fillers / min" value={metrics.fillersPerMin.toFixed(1)} />
-        <Metric label="Pauses" value={metrics.pauseCount} />
+        <Metric label="words / min" value={Math.round(metrics.wpm)} />
+        <Metric label="fillers / min" value={metrics.fillersPerMin.toFixed(1)} />
+        <Metric label="pauses" value={metrics.pauseCount} />
         <Metric
-          label="Pitch"
+          label="pitch"
           value={metrics.pitch ? `${Math.round(metrics.pitch.meanHz)} Hz` : "—"}
         />
       </dl>

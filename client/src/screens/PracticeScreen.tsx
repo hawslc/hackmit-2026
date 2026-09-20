@@ -184,10 +184,10 @@ export default function PracticeScreen({ material, stream, practiceGoal, onFinis
 
       {/* Live metrics */}
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <Stat label="Words / min" value={m ? `${Math.round(m.wpm)} wpm` : "—"} />
-        <Stat label="Fillers / min" value={m ? `${m.fillersPerMin.toFixed(1)}/min` : "—"} />
+        <Stat label="words / min" value={m ? `${Math.round(m.wpm)} wpm` : "—"} />
+        <Stat label="fillers / min" value={m ? `${m.fillersPerMin.toFixed(1)}/min` : "—"} />
         <Stat
-          label="Pauses (≥1.5s)"
+          label="pauses (≥1.5s)"
           value={m ? m.pauseCount : "—"}
           hint={
             live && live.pausedNowSec >= 0.3
@@ -208,7 +208,7 @@ export default function PracticeScreen({ material, stream, practiceGoal, onFinis
           </summary>
           <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
             <Stat
-              label="Pitch"
+              label="pitch"
               value={
                 live?.instant.pitchHz != null
                   ? `${Math.round(live.instant.pitchHz)} Hz`
@@ -233,7 +233,7 @@ export default function PracticeScreen({ material, stream, practiceGoal, onFinis
       {showTranscript && (
         <section className="min-h-24 rounded-2xl bg-white p-5 ring-1 ring-slate-200">
           <h2 className="text-sm font-semibold tracking-wide text-slate-500 uppercase">Transcript</h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate-700">
+          <p ref={transcriptRef} className="mt-2 max-h-48 overflow-y-auto text-sm leading-relaxed text-slate-700">
             {live?.transcript}
             {live?.partial && <span className="text-slate-400 italic"> {live.partial}</span>}
             {!live?.transcript && !live?.partial && (
