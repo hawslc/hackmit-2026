@@ -130,9 +130,11 @@ export class ScribeRealtime {
             this.state = "open";
             console.warn("[scribe] reconnected");
           })
-          .catch((err: Error) =>
-            this.handlers.onError?.(`reconnect failed: ${err.message}`),
-          );
+          .catch((err: Error) => {
+            if (!this.intentionalClose) {
+              this.handlers.onError?.(`reconnect failed: ${err.message}`);
+            }
+          });
       } else {
         this.handlers.onError?.(
           `connection closed (${e.code})${e.reason ? `: ${e.reason}` : ""}`,
@@ -146,11 +148,26 @@ export class ScribeRealtime {
         10_000,
       );
       const prev = ws.onmessage;
+      const prevClose = ws.onclose;
+      // A socket closed mid-handshake (stop(), network drop) rejects here
+      // instead of hanging until the timeout.
+      ws.onclose = (e) => {
+        window.clearTimeout(timeout);
+        prevClose?.call(ws, e);
+        reject(new Error("connection closed before session start"));
+      };
       ws.onmessage = (e) => {
         const msg = safeParse(e.data as string);
         if (msg?.message_type === "session_started") {
           window.clearTimeout(timeout);
           ws.onmessage = prev;
+          ws.onclose = prevClose;
+          if (this.intentionalClose) {
+            // stop() ran while we were handshaking — close the socket we just opened.
+            ws.close();
+            reject(new Error("stopped before session start"));
+            return;
+          }
           resolve();
           return;
         }

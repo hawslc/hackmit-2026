@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { SCORE_BANDS, type SpeakingScoreComponents } from "@cadence/shared";
 import { usePracticeSession } from "../live/usePracticeSession";
 import type { CompletedSession, LectureMaterial } from "../types";
@@ -28,13 +28,11 @@ function scoreColor(score: number): string {
 
 export default function PracticeScreen({ material, stream, onFinish, onCancel }: Props) {
   const { phase, live, error, start, finish } = usePracticeSession();
-  const startedRef = useRef(false);
 
-  // Kick off capture once from the stream Setup handed us. The ref guard keeps
-  // StrictMode's double-mount from starting two sessions.
+  // Kick off capture from the stream Setup handed us. Re-runs are safe:
+  // start() guards re-entry and abandons stale attempts superseded by
+  // StrictMode's dev remount.
   useEffect(() => {
-    if (startedRef.current) return;
-    startedRef.current = true;
     void start(stream);
   }, [start, stream]);
 

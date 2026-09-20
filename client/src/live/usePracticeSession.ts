@@ -18,7 +18,7 @@ export type SessionPhase =
   | "done"
   | "error";
 
-/** Live snapshot for the meters, refreshed ~10x/sec while recording. */
+/** Live snapshot for the meters, refreshed ~7x/sec while recording. */
 export interface LiveSnapshot {
   metrics: DeliveryMetrics;
   score: SpeakingScore;
@@ -29,7 +29,7 @@ export interface LiveSnapshot {
   pausedNowSec: number;
 }
 
-const LIVE_TICK_MS = 100;
+const LIVE_TICK_MS = 150;
 
 /**
  * Orchestrates one practice session. The mic stream is opened by Setup and
@@ -50,6 +50,20 @@ export function usePracticeSession() {
   const scribeRef = useRef<ScribeRealtime | null>(null);
   const tickRef = useRef<number | null>(null);
   const partialRef = useRef("");
+  // Guards live in refs so start()/finish() keep stable identities — if `phase`
+  // state were a dependency, every transition would recreate them and re-run
+  // the caller's mount effect, whose cleanup would tear down the live session.
+  const phaseRef = useRef<SessionPhase>("idle");
+  // start() is async; a StrictMode remount (or real unmount) mid-start bumps
+  // `gen`, so the stale attempt abandons itself instead of clobbering — or
+  // getting clobbered by — the live session.
+  const genRef = useRef(0);
+  const busyRef = useRef(false);
+
+  const updatePhase = useCallback((p: SessionPhase) => {
+    phaseRef.current = p;
+    setPhase(p);
+  }, []);
 
   const takeSnapshot = useCallback((): LiveSnapshot | null => {
     const acc = accumulatorRef.current;
@@ -78,27 +92,35 @@ export function usePracticeSession() {
 
   const start = useCallback(
     async (stream: MediaStream) => {
-      if (phase === "starting" || phase === "recording" || phase === "stopping") {
+      if (
+        busyRef.current ||
+        phaseRef.current === "recording" ||
+        phaseRef.current === "stopping"
+      ) {
         return;
       }
+      busyRef.current = true;
+      const gen = ++genRef.current;
+      const stale = () => genRef.current !== gen;
       setError(null);
       setSession(null);
-      setPhase("starting");
+      updatePhase("starting");
+      // Pipeline pieces stay local until they're all live — a stale attempt
+      // cleans up only what it created, never the refs a live session owns.
+      let sampler: AudioFeatureSampler | null = null;
+      let recorder: SessionRecorder | null = null;
+      let scribe: ScribeRealtime | null = null;
+      let committed = false;
       try {
         const accumulator = new MetricsAccumulator(Date.now());
-        accumulatorRef.current = accumulator;
         partialRef.current = "";
 
-        const sampler = new AudioFeatureSampler();
+        sampler = new AudioFeatureSampler();
         sampler.start(stream);
-        samplerRef.current = sampler;
-
-        const recorder = new SessionRecorder();
+        recorder = new SessionRecorder();
         recorder.start(stream);
-        recorderRef.current = recorder;
 
-        const scribe = new ScribeRealtime();
-        scribeRef.current = scribe;
+        scribe = new ScribeRealtime();
         await scribe.connect(stream, {
           onPartial: (text) => {
             partialRef.current = text;
@@ -109,23 +131,40 @@ export function usePracticeSession() {
           },
           onError: (message) => setError(message),
         });
+        if (stale()) return;
+
+        accumulatorRef.current = accumulator;
+        samplerRef.current = sampler;
+        recorderRef.current = recorder;
+        scribeRef.current = scribe;
+        committed = true;
 
         tickRef.current = window.setInterval(() => {
           setLive(takeSnapshot());
         }, LIVE_TICK_MS);
-        setPhase("recording");
+        updatePhase("recording");
       } catch (e) {
-        await teardown(scribeRef, samplerRef, recorderRef);
-        setError(e instanceof Error ? e.message : String(e));
-        setPhase("error");
+        if (!stale()) {
+          setError(e instanceof Error ? e.message : String(e));
+          updatePhase("error");
+        }
+      } finally {
+        if (!committed) {
+          void scribe?.stop().catch(() => {});
+          void sampler?.stop().catch(() => {});
+          void recorder?.stop().catch(() => {});
+        }
+        // Only the latest attempt releases the busy lock; a superseded one
+        // leaves it for the attempt that replaced it.
+        if (!stale()) busyRef.current = false;
       }
     },
-    [phase, takeSnapshot],
+    [takeSnapshot, updatePhase],
   );
 
   const finish = useCallback(async (): Promise<CompletedSession | null> => {
-    if (phase !== "recording") return null;
-    setPhase("stopping");
+    if (phaseRef.current !== "recording") return null;
+    updatePhase("stopping");
     if (tickRef.current != null) window.clearInterval(tickRef.current);
 
     await scribeRef.current?.stop();
@@ -139,7 +178,7 @@ export function usePracticeSession() {
 
     const acc = accumulatorRef.current;
     if (!acc) {
-      setPhase("error");
+      updatePhase("error");
       return null;
     }
     if (acc.allWords.length === 0 && acc.transcript.trim()) {
@@ -161,12 +200,14 @@ export function usePracticeSession() {
     };
     setSession(completed);
     setLive(null);
-    setPhase("done");
+    updatePhase("done");
     return completed;
-  }, [phase]);
+  }, [updatePhase]);
 
   useEffect(
     () => () => {
+      genRef.current++;
+      busyRef.current = false;
       if (tickRef.current != null) window.clearInterval(tickRef.current);
       void teardown(scribeRef, samplerRef, recorderRef);
     },
