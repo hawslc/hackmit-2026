@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SCORE_BANDS, type SpeakingScoreComponents } from "@cadence/shared";
 import { usePracticeSession } from "../live/usePracticeSession";
 import type { CompletedSession, LectureMaterial } from "../types";
@@ -38,6 +38,15 @@ export default function PracticeScreen({ material, stream, practiceGoal, onFinis
   const { phase, live, error, start, finish } = usePracticeSession();
   const [showMetrics, setShowMetrics] = useState(true);
   const [showTranscript, setShowTranscript] = useState(true);
+  const transcriptRef = useRef<HTMLParagraphElement | null>(null);
+
+  // Follow the live transcript unless the user scrolled up to re-read.
+  useEffect(() => {
+    const el = transcriptRef.current;
+    if (!el) return;
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+    if (nearBottom) el.scrollTop = el.scrollHeight;
+  }, [live?.transcript, live?.partial]);
 
   // Kick off capture from the stream Setup handed us. Re-runs are safe:
   // start() guards re-entry and abandons stale attempts superseded by
@@ -207,11 +216,11 @@ export default function PracticeScreen({ material, stream, practiceGoal, onFinis
               }
             />
             <Stat
-              label="Loudness"
+              label="loudness"
               value={live ? `${Math.min(999, Math.round((live.instant.rms / SCORE_BANDS.rmsFullMark) * 100))}%` : "0%"}
             />
             <Stat
-              label="Intonation"
+              label="intonation"
               value={m?.pitch ? `±${m.pitch.variationSemitones.toFixed(1)} st` : "±0.0 st"}
             />
           </div>
