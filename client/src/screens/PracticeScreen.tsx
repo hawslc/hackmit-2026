@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { SCORE_BANDS, type SpeakingScoreComponents } from "@cadence/shared";
 import { usePracticeSession } from "../live/usePracticeSession";
 import type { CompletedSession, LectureMaterial } from "../types";
@@ -20,6 +20,12 @@ const COMPONENT_LABELS: Record<keyof SpeakingScoreComponents, string> = {
   volume: "Volume",
 };
 
+function formatClock(sec: number): string {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
 function scoreColor(score: number): string {
   if (score >= 80) return "bg-emerald-500";
   if (score >= 60) return "bg-brand-600";
@@ -28,6 +34,8 @@ function scoreColor(score: number): string {
 
 export default function PracticeScreen({ material, stream, onFinish, onCancel }: Props) {
   const { phase, live, error, start, finish } = usePracticeSession();
+  const [showMetrics, setShowMetrics] = useState(true);
+  const [showTranscript, setShowTranscript] = useState(true);
 
   // Kick off capture from the stream Setup handed us. Re-runs are safe:
   // start() guards re-entry and abandons stale attempts superseded by
@@ -82,10 +90,34 @@ export default function PracticeScreen({ material, stream, onFinish, onCancel }:
             {material.concepts.length} concept{material.concepts.length === 1 ? "" : "s"}
           </p>
         </div>
-        <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-sm font-medium text-red-700">
-          <span className="size-2 animate-pulse rounded-full bg-red-600" aria-hidden />
-          {phase === "starting" ? "Connecting…" : phase === "stopping" ? "Wrapping up…" : "Recording"}
-        </span>
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowMetrics((v) => !v)}
+              aria-pressed={showMetrics}
+              className="rounded-full px-3 py-1 text-sm font-medium text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+            >
+              {showMetrics ? "Hide metrics" : "Show metrics"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowTranscript((v) => !v)}
+              aria-pressed={showTranscript}
+              className="rounded-full px-3 py-1 text-sm font-medium text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+            >
+              {showTranscript ? "Hide transcript" : "Show transcript"}
+            </button>
+            <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-sm font-medium text-red-700">
+              <span className="size-2 animate-pulse rounded-full bg-red-600" aria-hidden />
+              {phase === "starting" ? "Connecting…" : phase === "stopping" ? "Wrapping up…" : "Recording"}
+            </span>
+          </div>
+          {/* Session clock — always visible, never under a toggle. */}
+          <span className="rounded-full bg-white px-3 py-1 text-sm font-medium tabular-nums text-slate-700 ring-1 ring-slate-200">
+            {formatClock(live?.metrics.durationSec ?? 0)}
+          </span>
+        </div>
       </header>
 
       {error && (
@@ -94,6 +126,8 @@ export default function PracticeScreen({ material, stream, onFinish, onCancel }:
         </p>
       )}
 
+      {showMetrics && (
+      <>
       {/* Live speaking score */}
       <section className="rounded-2xl bg-white p-6 ring-1 ring-slate-200">
         <div className="flex items-baseline justify-between">
@@ -143,35 +177,53 @@ export default function PracticeScreen({ material, stream, onFinish, onCancel }:
               : undefined
           }
         />
-        <Stat
-          label="Pitch"
-          value={
-            live?.instant.pitchHz != null
-              ? `${Math.round(live.instant.pitchHz)} Hz`
-              : "—"
-          }
-        />
-        <Stat
-          label="Loudness"
-          value={live ? `${Math.min(999, Math.round((live.instant.rms / SCORE_BANDS.rmsFullMark) * 100))}%` : "0%"}
-        />
-        <Stat
-          label="Intonation"
-          value={m?.pitch ? `±${m.pitch.variationSemitones.toFixed(1)} st` : "±0.0 st"}
-        />
+        {/* Audio-derived stats, tucked under a collapsible dropdown. */}
+        <details className="group col-span-2 sm:col-span-3">
+          <summary className="flex cursor-pointer items-center gap-1.5 text-sm font-medium text-slate-500 select-none hover:text-slate-700">
+            <span
+              aria-hidden
+              className="inline-block transition-transform group-open:rotate-90"
+            >
+              ▸
+            </span>
+            Extra metrics
+          </summary>
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <Stat
+              label="Pitch"
+              value={
+                live?.instant.pitchHz != null
+                  ? `${Math.round(live.instant.pitchHz)} Hz`
+                  : "—"
+              }
+            />
+            <Stat
+              label="Loudness"
+              value={live ? `${Math.min(999, Math.round((live.instant.rms / SCORE_BANDS.rmsFullMark) * 100))}%` : "0%"}
+            />
+            <Stat
+              label="Intonation"
+              value={m?.pitch ? `±${m.pitch.variationSemitones.toFixed(1)} st` : "±0.0 st"}
+            />
+          </div>
+        </details>
       </section>
+      </>
+      )}
 
       {/* Live transcript */}
-      <section className="min-h-24 rounded-2xl bg-white p-5 ring-1 ring-slate-200">
-        <h2 className="text-sm font-semibold tracking-wide text-slate-500 uppercase">Transcript</h2>
-        <p className="mt-2 text-sm leading-relaxed text-slate-700">
-          {live?.transcript}
-          {live?.partial && <span className="text-slate-400 italic"> {live.partial}</span>}
-          {!live?.transcript && !live?.partial && (
-            <span className="text-slate-400">Start talking — your words will appear here.</span>
-          )}
-        </p>
-      </section>
+      {showTranscript && (
+        <section className="min-h-24 rounded-2xl bg-white p-5 ring-1 ring-slate-200">
+          <h2 className="text-sm font-semibold tracking-wide text-slate-500 uppercase">Transcript</h2>
+          <p className="mt-2 text-sm leading-relaxed text-slate-700">
+            {live?.transcript}
+            {live?.partial && <span className="text-slate-400 italic"> {live.partial}</span>}
+            {!live?.transcript && !live?.partial && (
+              <span className="text-slate-400">Start talking — your words will appear here.</span>
+            )}
+          </p>
+        </section>
+      )}
 
       <button
         type="button"
