@@ -19,7 +19,7 @@ function prompt(files: MaterialFiles): Prompt {
   return {
     system: `You extract the key concepts a teacher must get across, from their uploaded lecture materials.
 Read all the files and produce ONE deduplicated list: the same idea appearing on a slide and in the notes is a single concept.
-Aim for 5–12 concepts — the ideas that matter, not every bullet point.
+Aim for 2-6 concepts — the ideas that matter, not every bullet point.
 For each concept:
 - "name": a short noun phrase (e.g. "Base case", "Big-O notation"), not a full sentence.
 - "importance": an integer 1–5 for how essential it is (5 = the lesson doesn't work without it, 1 = a nice-to-have aside).
