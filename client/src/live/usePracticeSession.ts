@@ -100,11 +100,22 @@ export function usePracticeSession() {
     let sampler: AudioFeatureSampler | null = null;
     let recorder: SessionRecorder | null = null;
     let scribe: ScribeRealtime | null = null;
+    let owns = !existingStream;
     const stale = () => genRef.current !== gen;
     try {
-      ownsStreamRef.current = !existingStream;
-      const stream = existingStream ?? (await acquireMic());
-      if (stale()) return;
+      // A provided stream can arrive dead — e.g. StrictMode's dev remount runs
+      // the caller's cleanup, which stops its tracks. Reacquire in that case.
+      // `owns` stays local so a superseding attempt can't flip our cleanup.
+      let stream = existingStream;
+      if (!stream?.getAudioTracks().some((t) => t.readyState === "live")) {
+        owns = true;
+        stream = await acquireMic();
+      }
+      if (stale()) {
+        if (owns) releaseMic();
+        return;
+      }
+      ownsStreamRef.current = owns;
 
       const accumulator = new MetricsAccumulator(Date.now());
       partialRef.current = '';
@@ -143,8 +154,10 @@ export function usePracticeSession() {
       await scribe?.stop().catch(() => {});
       await sampler?.stop().catch(() => {});
       await recorder?.stop().catch(() => {});
-      setError(e instanceof Error ? e.message : String(e));
-      setPhase('error');
+      if (!stale()) {
+        setError(e instanceof Error ? e.message : String(e));
+        setPhase('error');
+      }
     } finally {
       busyRef.current = false;
       if (stale()) {
@@ -153,8 +166,7 @@ export function usePracticeSession() {
         void scribe?.stop().catch(() => {});
         void sampler?.stop().catch(() => {});
         void recorder?.stop().catch(() => {});
-        if (ownsStreamRef.current) releaseMic();
-        ownsStreamRef.current = false;
+        if (owns) releaseMic();
       }
     }
   }, [phase, acquireMic, releaseMic, takeSnapshot, releaseStream]);
