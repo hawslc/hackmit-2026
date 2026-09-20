@@ -1,17 +1,8 @@
 // Client-only types. What crosses the wire lives in `@cadence/shared`; this file
 // holds what the UI adds on top of it (concept origin, the session handed from
-// Practice to Review) and the review view model the Review screen renders.
+// Practice to Review).
 
-import type {
-  Concept as WireConcept,
-  ConceptImportance,
-  CoverageStatus,
-  DeliveryMetrics,
-  FactualIssue,
-  SectionResult,
-  SourceFile,
-  WordTiming,
-} from "@cadence/shared";
+import type { Concept as WireConcept, DeliveryMetrics, SourceFile, WordTiming } from "@cadence/shared";
 
 // ---- Materials -------------------------------------------------------------
 
@@ -40,54 +31,4 @@ export interface CompletedSession {
   metrics: DeliveryMetrics;
   /** Browser-local recording for playback on Review; never uploaded. */
   recording: Blob;
-}
-
-// ---- Review view model -----------------------------------------------------
-// The server returns one section per reviewer (see `SessionReview`); the Review
-// screen renders them through this shape. `toReviewView` does the mapping.
-
-export type SectionId = "delivery" | "content" | "teaching" | "structure" | "engagement" | "confidence";
-
-export interface SectionFeedback {
-  point: string;
-  quote?: string;
-}
-
-/** One concept and whether the TA covered it — rendered color-coded in the Content section. */
-export interface ConceptCoverageItem {
-  name: string;
-  status: CoverageStatus;
-  /** The reviewer's note (for gaps) or supporting quote (for covered concepts). */
-  detail?: string;
-}
-
-export interface SectionDetail {
-  /** 0-100. Only sections with something measurable have one (content, teaching). */
-  score?: number;
-  summary: string;
-  feedback: SectionFeedback[];
-  /** Present only on the Content section: the full per-concept coverage breakdown. */
-  concepts?: ConceptCoverageItem[];
-}
-
-/** Each part of a review can succeed, fail or be skipped on its own ("failures stay contained"). */
-export interface ReviewSection {
-  id: SectionId;
-  title: string;
-  result: SectionResult<SectionDetail>;
-}
-
-export interface ContentGap {
-  concept: string;
-  importance: ConceptImportance;
-  status: Exclude<CoverageStatus, "covered">;
-  note?: string;
-}
-
-export interface ReviewView {
-  summary: string;
-  topPriority: string;
-  sections: ReviewSection[];
-  gaps: SectionResult<ContentGap[]>;
-  factualIssues: SectionResult<FactualIssue[]>;
 }
