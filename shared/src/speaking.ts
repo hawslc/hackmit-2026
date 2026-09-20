@@ -76,7 +76,7 @@ export const FILLER_PHRASES = [
 
 export const SCORE_BANDS = {
   wpm: { good: [130, 160], zero: [80, 220] },
-  fillersPerMin: { goodBelow: 3, zeroAt: 12 },
+  fillersPerMin: { goodBelow: 3, zeroAt: 20 },
   pausesPerMin: { good: [0.5, 5], zeroAt: 10 },
   semitoneVariationFull: 4,
   rmsFullMark: 0.012,
