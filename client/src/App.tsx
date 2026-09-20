@@ -14,12 +14,15 @@ export default function App() {
   const [view, setView] = useState<View>({ name: "setup" });
   // Held here (not in SetupScreen) so the material survives Setup → Practice → Setup.
   const setup = useMaterialSetup();
+  // Carried from a review's focus card into the next practice session as a reminder.
+  const [practiceGoal, setPracticeGoal] = useState<string | undefined>(undefined);
 
   if (view.name === "practice") {
     return (
       <PracticeScreen
         material={setup.material}
         stream={view.stream}
+        practiceGoal={practiceGoal}
         onFinish={(session) => setView({ name: "review", session })}
         onCancel={() => setView({ name: "setup" })}
       />
@@ -31,7 +34,10 @@ export default function App() {
       <ReviewScreen
         material={setup.material}
         session={view.session}
-        onPracticeAgain={() => setView({ name: "setup" })}
+        onPracticeAgain={(goal) => {
+          setPracticeGoal(goal);
+          setView({ name: "setup" });
+        }}
       />
     );
   }
