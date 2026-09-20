@@ -7,7 +7,7 @@ import express from "express";
 import multer from "multer";
 import { extractConcepts } from "ai-review";
 import { extractFile } from "../extract/index.ts";
-import { HttpError } from "../httpError.ts";
+import { HttpError, llmErrorToHttp } from "../httpError.ts";
 import { parseExtractConceptsRequest } from "../validation.ts";
 
 const upload = multer({
@@ -33,6 +33,16 @@ materialsRouter.post("/file", upload.single("file"), async (req, res) => {
 
 materialsRouter.post("/concepts", async (req, res) => {
   const { files } = parseExtractConceptsRequest(req.body);
-  const concepts: ExtractConceptsResponse = await extractConcepts(files);
+  let concepts: ExtractConceptsResponse;
+  try {
+    concepts = await extractConcepts(files);
+  } catch (err) {
+    console.error("[server] concept extraction failed:", err);
+    throw llmErrorToHttp(
+      err,
+      "Couldn't extract key ideas right now. Try again or add them yourself.",
+      "Finding key ideas took too long. Try again.",
+    );
+  }
   res.json(concepts); // bare array is what the client expects
 });

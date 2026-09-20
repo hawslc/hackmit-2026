@@ -32,6 +32,9 @@ export default function ConceptChips({ concepts, status, onRemove, onAdd, onRetr
 
       <div aria-live="polite" className="mt-3">
         {status === "loading" && <p className="text-sm text-slate-600">Finding key ideas…</p>}
+        {status === "idle" && concepts.length === 0 && (
+          <p className="text-sm text-slate-600">No key ideas found. Add your own below.</p>
+        )}
         {status === "error" && (
           <div className="flex flex-wrap items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
             <span>Couldn't find key ideas automatically. You can add them yourself.</span>

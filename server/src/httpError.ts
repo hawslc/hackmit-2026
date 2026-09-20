@@ -3,6 +3,7 @@
 
 import type { ApiErrorBody } from "@ta-coach/shared";
 import type { ErrorRequestHandler } from "express";
+import { LlmError } from "ai-review";
 
 export class HttpError extends Error {
   status: number;
@@ -10,6 +11,19 @@ export class HttpError extends Error {
     super(message);
     this.status = status;
     this.name = "HttpError";
+  }
+}
+
+/** Map an LLM failure to a user-safe HttpError; anything else passes through untouched. */
+export function llmErrorToHttp(err: unknown, failedMessage: string, timeoutMessage: string): unknown {
+  if (!(err instanceof LlmError)) return err;
+  switch (err.kind) {
+    case "timeout":
+      return new HttpError(504, timeoutMessage);
+    case "not-configured":
+      return new HttpError(500, "The server isn't configured for AI extraction.");
+    default:
+      return new HttpError(502, failedMessage);
   }
 }
 

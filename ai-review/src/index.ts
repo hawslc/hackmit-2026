@@ -5,3 +5,5 @@
 export { runReview } from "./orchestrate.ts";
 export { extractConcepts } from "./concepts.ts";
 export type { LlmProvider, ReviewOptions, ReviewRequest } from "./types.ts";
+export { LlmError } from "./llm/client.ts";
+export type { LlmErrorKind } from "./llm/client.ts";

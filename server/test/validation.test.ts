@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { HttpError } from "../src/httpError.ts";
+import { LlmError } from "ai-review";
+import { HttpError, llmErrorToHttp } from "../src/httpError.ts";
 import { materialToLessonPlan } from "../src/lessonPlan.ts";
 import { parseExtractConceptsRequest, parseReviewRequest } from "../src/validation.ts";
 
@@ -62,5 +63,22 @@ describe("materialToLessonPlan", () => {
       concepts: [{ name: "Base case", importance: 5 }, { name: "Stack" }],
     });
     assert.equal(plan, "Concepts to cover:\n- Base case (importance 5/5)\n- Stack\n\nMaterials:\nSlide text");
+  });
+});
+
+describe("llmErrorToHttp", () => {
+  const map = (kind: "timeout" | "not-configured" | "failed") =>
+    llmErrorToHttp(new LlmError(kind, "raw"), "failed msg", "timeout msg") as HttpError;
+
+  it("maps LLM failures to user-safe statuses", () => {
+    assert.deepEqual([map("timeout").status, map("timeout").message], [504, "timeout msg"]);
+    assert.deepEqual([map("failed").status, map("failed").message], [502, "failed msg"]);
+    assert.equal(map("not-configured").status, 500);
+    assert.doesNotMatch(map("failed").message, /raw/);
+  });
+
+  it("passes other errors through", () => {
+    const err = new Error("boom");
+    assert.equal(llmErrorToHttp(err, "a", "b"), err);
   });
 });
