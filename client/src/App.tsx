@@ -21,6 +21,7 @@ export default function App() {
         material={setup.material}
         stream={view.stream}
         onFinish={(session) => setView({ name: "review", session })}
+        onCancel={() => setView({ name: "setup" })}
       />
     );
   }

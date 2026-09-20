@@ -6,6 +6,7 @@ import type {
   Concept as WireConcept,
   ConceptImportance,
   CoverageStatus,
+  DeliveryMetrics,
   FactualIssue,
   SectionResult,
   SourceFile,
@@ -33,7 +34,12 @@ export interface CompletedSession {
   /** Word-level timings from live transcription: what the review is built from. */
   words: WordTiming[];
   durationSec: number;
-  // TODO(live): + metrics, recording
+  /** Full committed transcript text. */
+  transcript: string;
+  /** Measured delivery metrics (WPM, pauses, fillers, pitch, volume). */
+  metrics: DeliveryMetrics;
+  /** Browser-local recording for playback on Review; never uploaded. */
+  recording: Blob;
 }
 
 // ---- Review view model -----------------------------------------------------

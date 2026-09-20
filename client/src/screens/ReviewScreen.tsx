@@ -1,4 +1,5 @@
 import ContentGaps from "../components/ContentGaps";
+import DeliveryMetricsCard from "../components/DeliveryMetricsCard";
 import FactualIssues from "../components/FactualIssues";
 import SectionCard from "../components/SectionCard";
 import { useReview } from "../hooks/useReview";
@@ -69,6 +70,8 @@ export default function ReviewScreen({ material, session, onPracticeAgain }: Pro
           <p className="mt-1 text-sm text-slate-800">{review.topPriority}</p>
         </div>
       </header>
+
+      <DeliveryMetricsCard session={session} />
 
       <div className="space-y-3">
         {review.sections.map((section) => (
