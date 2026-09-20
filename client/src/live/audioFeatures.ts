@@ -12,8 +12,13 @@ export interface InstantAudio {
 }
 
 const SAMPLE_INTERVAL_MS = 50;
-const MIN_RMS_FOR_PITCH = 0.01;
-const MIN_RMS_FOR_SAMPLE = 0.005;
+/** Floors are deliberately low — quiet mics still register; the silence
+ *  detector adapts to the noise floor separately. */
+const MIN_RMS_FOR_PITCH = 0.004;
+const MIN_RMS_FOR_SAMPLE = 0.002;
+/** Hold a pitch reading this long through unvoiced frames so the meter
+ *  doesn't flicker to "—" mid-sentence. */
+const PITCH_HOLD_MS = 400;
 /** Silence threshold = max(this floor, 3x the 20th-percentile RMS). */
 const PAUSE_RMS_FLOOR = 0.006;
 const MIN_PITCH_HZ = 50;
@@ -33,6 +38,8 @@ export class AudioFeatureSampler {
 
   private pitchSamples: number[] = [];
   private rmsSamples: number[] = [];
+  private lastPitchHz: number | null = null;
+  private lastPitchAtMs = -Infinity;
   /** Every RMS sample with its session-relative time — the silence detector
    *  behind pause detection, kept separate from the voiced-only stats. */
   private envelope: { tMs: number; rms: number }[] = [];
@@ -54,7 +61,16 @@ export class AudioFeatureSampler {
     this.analyser.getFloatTimeDomainData(this.buf);
     const rms = rmsOf(this.buf);
     const pitchHz = detectPitch(this.buf, this.ctx.sampleRate);
-    this.current = { pitchHz, rms };
+    const nowMs = this.ctx.currentTime * 1000;
+    if (pitchHz != null) {
+      this.lastPitchHz = pitchHz;
+      this.lastPitchAtMs = nowMs;
+    }
+    const heldPitch =
+      rms >= MIN_RMS_FOR_SAMPLE && nowMs - this.lastPitchAtMs < PITCH_HOLD_MS
+        ? this.lastPitchHz
+        : null;
+    this.current = { pitchHz: pitchHz ?? heldPitch, rms };
     this.envelope.push({ tMs: this.ctx.currentTime * 1000, rms });
     if (rms >= MIN_RMS_FOR_SAMPLE) {
       this.rmsSamples.push(rms);
@@ -70,14 +86,14 @@ export class AudioFeatureSampler {
       (hz) => hz >= medianHz / 2 && hz <= medianHz * 2,
     );
     const pitch =
-      stable.length >= 5
+      stable.length >= 3
         ? {
             meanHz: mean(stable),
             variationSemitones: semitoneStddev(stable),
           }
         : null;
     const volume =
-      this.rmsSamples.length >= 5
+      this.rmsSamples.length >= 3
         ? {
             meanRms: mean(this.rmsSamples),
             variation: mean(this.rmsSamples) > 0

@@ -52,7 +52,6 @@ export function computeSpeakingScore(m: DeliveryMetrics): SpeakingScore {
 }
 
 function scorePauses(m: DeliveryMetrics): number | null {
-  if (m.durationSec < 15) return null;
   const ppm = m.pauseCount / (Math.max(m.durationSec, MIN_RATE_WINDOW_SEC) / 60);
   const [goodLo, goodHi] = SCORE_BANDS.pausesPerMin.good;
   if (ppm >= goodLo && ppm <= goodHi) return 100;

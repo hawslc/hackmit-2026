@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import type { SpeakingScoreComponents } from "@cadence/shared";
+import { SCORE_BANDS, type SpeakingScoreComponents } from "@cadence/shared";
 import { usePracticeSession } from "../live/usePracticeSession";
 import type { CompletedSession, LectureMaterial } from "../types";
 
@@ -123,8 +123,8 @@ export default function PracticeScreen({ material, stream, onFinish, onCancel }:
                     />
                   )}
                 </span>
-                <span className="w-8 shrink-0 text-right text-sm tabular-nums text-slate-500">
-                  {value ?? "—"}
+                <span className="w-14 shrink-0 text-right text-sm tabular-nums text-slate-500">
+                  {value == null ? "—" : `${value}/100`}
                 </span>
               </li>
             );
@@ -134,10 +134,10 @@ export default function PracticeScreen({ material, stream, onFinish, onCancel }:
 
       {/* Live metrics */}
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <Stat label="Words / min" value={m ? Math.round(m.wpm) : "—"} />
-        <Stat label="Fillers / min" value={m ? m.fillersPerMin.toFixed(1) : "—"} />
+        <Stat label="Words / min" value={m ? `${Math.round(m.wpm)} wpm` : "—"} />
+        <Stat label="Fillers / min" value={m ? `${m.fillersPerMin.toFixed(1)}/min` : "—"} />
         <Stat
-          label="Pauses"
+          label="Pauses (≥1.5s)"
           value={m ? m.pauseCount : "—"}
           hint={
             live && live.pausedNowSec >= 0.3
@@ -145,9 +145,22 @@ export default function PracticeScreen({ material, stream, onFinish, onCancel }:
               : undefined
           }
         />
-        <Stat label="Pitch" value={live?.instant.pitchHz ? `${Math.round(live.instant.pitchHz)} Hz` : "—"} />
-        <Stat label="Volume" value={live ? live.instant.rms.toFixed(3) : "—"} />
-        <Stat label="Words" value={m ? m.wordCount : "—"} />
+        <Stat
+          label="Pitch"
+          value={
+            live?.instant.pitchHz != null
+              ? `${Math.round(live.instant.pitchHz)} Hz`
+              : "—"
+          }
+        />
+        <Stat
+          label="Loudness"
+          value={live ? `${Math.min(999, Math.round((live.instant.rms / SCORE_BANDS.rmsFullMark) * 100))}%` : "0%"}
+        />
+        <Stat
+          label="Intonation"
+          value={m?.pitch ? `±${m.pitch.variationSemitones.toFixed(1)} st` : "±0.0 st"}
+        />
       </section>
 
       {/* Live transcript */}
