@@ -1,4 +1,5 @@
 import { useState } from "react";
+import logo from "../assets/logo.png";
 import ConceptChips from "../components/ConceptChips";
 import FileUploader from "../components/FileUploader";
 import type { MaterialSetup } from "../hooks/useMaterialSetup";
@@ -55,9 +56,12 @@ export default function SetupScreen({ setup, onStart }: Props) {
   return (
     <main className="mx-auto flex min-h-screen max-w-xl items-center px-4 py-8">
       <div className="w-full space-y-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-8">
-        <header>
-          <h1 className="text-2xl font-bold text-brand-700">Cadence</h1>
-          <p className="mt-1 text-slate-600">Upload your materials, then teach out loud.</p>
+        <header className="flex items-center gap-3">
+          <img src={logo} alt="" className="h-10 w-auto" />
+          <div>
+            <h1 className="text-2xl font-bold text-brand-700">Cadence</h1>
+            <p className="mt-1 text-slate-600">Upload your materials, then teach out loud.</p>
+          </div>
         </header>
 
         <section aria-labelledby="materials-heading">
