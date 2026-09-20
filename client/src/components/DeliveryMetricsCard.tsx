@@ -31,6 +31,9 @@ export default function DeliveryMetricsCard({ session }: Props) {
   const { metrics, recording } = session;
   const score = computeSpeakingScore(metrics);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  // The audio element's own duration — matches the playback file exactly,
+  // unlike metrics.durationSec which includes connect/shutdown overhead.
+  const [audioSec, setAudioSec] = useState<number | null>(null);
 
   useEffect(() => {
     if (recording.size === 0) return;
@@ -44,7 +47,7 @@ export default function DeliveryMetricsCard({ session }: Props) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="font-semibold">Delivery</h3>
-          <p className="mt-0.5 text-sm text-slate-500">How you sounded — {formatDuration(metrics.durationSec)}</p>
+          <p className="mt-0.5 text-sm text-slate-500">How you sounded — {formatDuration(audioSec ?? metrics.durationSec)}</p>
         </div>
         <span className={`shrink-0 rounded-full px-3 py-1 text-sm font-semibold ${pillClass(score.overall)}`}>
           {score.overall}
@@ -89,7 +92,28 @@ export default function DeliveryMetricsCard({ session }: Props) {
           <p className="mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase">
             Your recording
           </p>
-          <audio controls src={audioUrl} className="w-full" />
+          <audio
+            controls
+            src={audioUrl}
+            className="w-full"
+            onLoadedMetadata={(e) => {
+              const el = e.currentTarget;
+              if (Number.isFinite(el.duration)) {
+                setAudioSec(el.duration);
+              } else {
+                // MediaRecorder webm blobs can lack a duration; seeking to the
+                // end makes the browser resolve it (fired via durationchange).
+                el.currentTime = Number.MAX_SAFE_INTEGER;
+              }
+            }}
+            onDurationChange={(e) => {
+              const el = e.currentTarget;
+              if (Number.isFinite(el.duration)) {
+                setAudioSec(el.duration);
+                if (el.currentTime > 1e6) el.currentTime = 0;
+              }
+            }}
+          />
         </div>
       )}
     </section>
