@@ -1,8 +1,6 @@
-// Review: POST /api/review. Every quote-bearing judgment carries `atSec` so the
-// UI can seek the recording to that moment.
-
-import type { ReviewMaterial } from "./materials.ts";
-import type { SectionResult } from "./api.ts";
+// Review: POST /api/review. The response is a small set of grounded coaching
+// cards. Every card traces to a real moment in the session; `atSec` lets the UI
+// label (and later seek to) that moment.
 
 /** One word from Scribe's `committed_transcript_with_timestamps`. Times in seconds from session start. */
 export interface WordTiming {
@@ -11,124 +9,53 @@ export interface WordTiming {
   end: number;
 }
 
+import type { ReviewMaterial } from "./materials.ts";
+
 /** Body of POST /api/review. */
 export interface ReviewRequestBody {
   words: WordTiming[];
-  /** When absent (or without any text or concepts), the coverage section is skipped. */
+  /** When absent (or without any text or concepts), the coverage reviewer is skipped. */
   material?: ReviewMaterial;
 }
 
-// ---- Per-reviewer outputs ----
-
-export type DeliveryIssue = "rambling" | "verbose" | "unclear";
-
-export interface DeliveryMoment {
-  quote: string;
-  atSec: number;
-  issue: DeliveryIssue;
-  suggestion: string;
-}
-
-export interface DeliveryReview {
-  /** Encouraging one-liner on overall clarity & conciseness. */
-  note: string;
-  moments: DeliveryMoment[];
-}
-
+/** Importance/status kept for the coverage reviewer's internal concept checklist. */
 export type ConceptImportance = "core" | "supporting" | "optional";
 export type CoverageStatus = "covered" | "partial" | "missing";
 
-export interface ConceptCoverage {
-  name: string;
-  importance: ConceptImportance;
-  status: CoverageStatus;
-  /** Transcript quote proving coverage; present when covered/partial. */
-  evidence?: string;
-  note?: string;
-}
+/** Which reviewer surfaced a card — used only for the card's label. */
+export type CoachingCategory =
+  | "delivery"
+  | "coverage"
+  | "teaching"
+  | "structure"
+  | "engagement"
+  | "confidence";
 
-export interface CoverageReview {
-  coveredCount: number;
-  totalCount: number;
-  concepts: ConceptCoverage[];
-}
-
-export type TeachingCategory =
-  | "accessible_language"
-  | "analogies_examples"
-  | "checks_for_understanding";
-
-export interface TeachingScore {
-  category: TeachingCategory;
-  /** 1–5. */
-  score: number;
-  strength: string;
-  suggestion: string;
-  evidence?: string;
-}
-
-export interface TeachingReview {
-  scores: TeachingScore[];
-}
-
-export interface StructureIssue {
-  problem: string;
-  suggestion: string;
-  quote?: string;
-  atSec?: number;
-}
-
-export interface StructureReview {
-  note: string;
-  issues: StructureIssue[];
-}
-
-export interface EngagementObservation {
+/** One grounded, actionable coaching item. */
+export interface CoachingCard {
+  category: CoachingCategory;
+  /** 2–4 word title, e.g. "Stronger questions". */
+  headline: string;
+  /** Verbatim transcript quote, validated server-side. Empty only for plan-grounded coverage gaps. */
   quote: string;
+  /** Seconds from session start of the quoted moment (0 for plan-grounded gaps). */
   atSec: number;
-  /** What this moment shows — e.g. "open question", "flat stretch". */
-  note: string;
+  /** Neutral description of what happened. */
+  whatHappened: string;
+  /** One sentence on why it matters. */
+  whyItMatters: string;
+  /** A concrete line the user could say next time. */
+  tryInstead: string;
+  /** The retry target carried into the next practice session. */
+  practiceGoal: string;
 }
 
-export interface EngagementReview {
-  note: string;
-  observations: EngagementObservation[];
-}
-
-export type ConfidenceInstanceType = "hedge" | "filler";
-
-export interface ConfidenceInstance {
-  quote: string;
-  atSec: number;
-  type: ConfidenceInstanceType;
-}
-
-export interface ConfidenceReview {
-  note: string;
-  /** Filler words per minute, derived deterministically from timestamps. */
-  fillersPerMinute: number;
-  instances: ConfidenceInstance[];
-}
-
-export interface FactualIssue {
-  quote: string;
-  problem: string;
-  correction: string;
-  basis: "materials" | "general";
-  /** What the LLM used to judge the statement wrong. Only `http(s)` urls should be rendered as links. */
-  source: { label: string; excerpt?: string; url?: string };
-}
-
-/** Response of POST /api/review: the whole report. */
+/** Response of POST /api/review. */
 export interface SessionReview {
-  summary: string;
-  topPriority: string;
-  delivery: SectionResult<DeliveryReview>;
-  coverage: SectionResult<CoverageReview>;
-  teaching: SectionResult<TeachingReview>;
-  structure: SectionResult<StructureReview>;
-  engagement: SectionResult<EngagementReview>;
-  confidence: SectionResult<ConfidenceReview>;
-  /** TODO(ai): no reviewer produces this yet. The client renders it when present. */
-  factualIssues?: SectionResult<FactualIssue[]>;
+  /** "insufficient" → nothing cleared the evidence bar; the UI shows a single honest line. */
+  evidenceState: "coached" | "insufficient";
+  /** The one main thing to work on; null when insufficient. */
+  focus: CoachingCard | null;
+  /** Additional grounded cards for progressive disclosure (0..3). */
+  more: CoachingCard[];
 }
