@@ -1,25 +1,41 @@
 # ai-review
 
 Agentic AI review of a teaching-practice transcript. Takes an ElevenLabs Scribe
-transcript (words + timestamps) plus an optional lesson plan, runs several narrow
-reviewers in parallel, and returns one structured report.
+transcript (words + timestamps) plus an optional lesson plan, runs six narrow
+reviewers in parallel, and returns a small set of grounded coaching cards.
 
 ## Reviewers
 
-| Section | What it judges | Skipped when |
+Five of the six share a scaffold (`reviewers/observation.ts`): same rules, same
+`Observation[]` shape (category, quote, atSec, observation) — no scores, no
+scoring category, just a quoted moment and what to do about it. `coverage` is the
+exception, since its "evidence" is the lesson plan rather than a transcript quote.
+
+| Section | What it looks for | Skipped when |
 |---|---|---|
-| **Delivery** | Word-level clarity & conciseness (rambling / verbose / unclear moments) | — |
-| **Coverage** | Lesson-plan concepts covered / partial / missing, by importance | no lesson plan |
-| **Teaching** | `accessible_language`, `analogies_examples`, `checks_for_understanding` (1–5) | — |
-| **Structure** | Lesson-level ordering, intro, transitions, recap | — |
-| **Engagement** | Interactivity, questions, energy | — |
-| **Confidence** | Hedging + filler words (fillers/min is measured, not LLM-judged) | — |
+| **Delivery** | A quoted stretch that rambles, is verbose, or is unclear — wording only, not tone/pace/filler | — |
+| **Coverage** | Lesson-plan concepts covered / partial / missing, by importance (core/supporting/optional); grounded in the plan, `quote: ""` | no lesson plan |
+| **Teaching** | An abstract explanation missing a concrete example, a closed comprehension check, or unexplained jargon | — |
+| **Structure** | A seam where lesson organization breaks — an abrupt topic jump or ending | — |
+| **Engagement** | A genuinely open question (good) or a flat, one-directional stretch (bad) | — |
+| **Confidence** | Hedging language ("I think maybe", "sort of") undercutting a claim the teacher could state plainly | — |
 
-A synthesizer then writes the summary and picks one top priority
-(missing core concept > lowest teaching score > delivery/structure issue).
+Every quote a reviewer returns is checked against the transcript before it can
+become a card: `isQuoteGrounded()` / `locateQuoteSec()` (`src/transcript.ts`) do a
+normalized substring match, falling back to word overlap, and anything that
+doesn't verify is dropped. Coverage observations skip this check — they're
+grounded by the lesson plan, not a transcript excerpt.
 
-Each reviewer is contained: a throw or 30s timeout becomes an inline
-`{status:"error"}` section instead of blanking the report.
+What survives grounding goes to `coach()` (`src/coach.ts`), which ranks by
+category (`coverage > teaching > structure > engagement > delivery > confidence`),
+keeps the top 4, and writes the final prose for a `focus` card plus up to 3
+`more` cards. The LLM pass can rewrite headline/wording but never invents a
+quote or timestamp — those are carried straight from the source observation. If
+that LLM call fails, `coach()` falls back to the observations' own text.
+
+Each reviewer call is contained: a throw or 30s timeout collapses to an empty
+`[]` rather than surfacing an error, so one bad call just means fewer
+observations — not a broken report.
 
 ## Run the demo (offline)
 
@@ -54,16 +70,18 @@ The request and response contracts (`WordTiming`, `SessionReview`, `Concept`, �
 ```
 src/
   index.ts          public entry point
-  orchestrate.ts    runReview: context → reviewers in parallel → synthesize
-  synthesize.ts     summary + top priority (prompt, mock and fallback live here)
+  orchestrate.ts    runReview: context → 6 reviewers in parallel → grounding filter → coach
+  coach.ts          ranks grounded observations, writes the final cards (prompt, mock and
+                    fallback live here)
   concepts.ts       extractConcepts (step 0, run at upload)
   context.ts        per-request data every reviewer needs
-  transcript.ts     pure helpers over word timings
+  transcript.ts     pure helpers over word timings, incl. isQuoteGrounded / locateQuoteSec
   llm/              infrastructure: config (env), completeJson, shared prompt fragments
-  reviewers/        one file per reviewer, each holding its prompt, its mock and its logic
+  reviewers/        one file per reviewer; observation.ts holds the shared prompt/parsing
+                    scaffold that delivery/teaching/structure/engagement/confidence all use
 ```
 
-To tune a reviewer, open its file: the prompt and the canned mock output sit at the top.
+To tune a reviewer, open its file: the prompt (`LOOK_FOR`) and the canned mock output sit at the top.
 
 ## Tests
 

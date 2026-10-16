@@ -5,9 +5,9 @@
 Practice teaching, get reviewed like a mentor would. A TA uploads their lecture materials
 (slides, PDFs, docs, notes), clicks **Start practice**, and teaches out loud. The app records
 and transcribes as they go, with live meters for pace, fillers and intonation. When they finish,
-AI reviewers return a **speaking score**, the **content gaps** (ideas from the materials they
-didn't cover, and whether that matters), and **teaching-skills** feedback. The recording plays
-back alongside.
+AI reviewers return a **speaking score** and a small set of **coaching cards** — one focus card
+plus up to three more — each grounded in something the TA actually said (or, for a missed core
+idea, in their own lesson plan). The recording plays back alongside.
 
 - **Track:** Education
 - **Challenges we're aiming at:** ElevenLabs (Scribe v2 Realtime transcription, plus the voice-agent
@@ -21,8 +21,8 @@ back alongside.
    access (first time only), then recording and live transcription begin right away. The TA
    teaches out loud while live meters show pace, fillers and intonation.
 3. **Click "Finish".** Recording stops and the session goes to review.
-4. **Review:** speaking score, content gaps, teaching-skills feedback and the recording, played
-   back next to the transcript.
+4. **Review:** speaking score, a focus coaching card plus up to three more, and the recording,
+   played back next to the transcript.
 
 ## Inputs → outputs
 
@@ -31,10 +31,10 @@ The TA provides only the materials and the practice itself. Audio and the transc
 
 | What the TA provides | What the app captures during practice | Outputs |
 |---|---|---|
-| Up to 5 lecture files: slides (.pptx, incl. speaker notes), PDF, Word (.docx), .txt, .md | Audio recording (MediaRecorder, from "Start practice" to "Finish") | **Speaking score** 0–100: pace, pauses, fillers, intonation, volume, plus tips |
-| Teaching out loud after clicking "Start practice" | Live transcript with word timestamps (Scribe) | **Content gaps**: concepts from the materials not (fully) covered, ranked by importance, never framed as failures |
-| | Delivery metrics: pace, pauses, fillers, pitch, volume | **Teaching skills**: accessible language, analogies/examples, checks for understanding (1–5 each) |
-| | | Summary + one top priority, plus playback of the recording |
+| Up to 5 lecture files: slides (.pptx, incl. speaker notes), PDF, Word (.docx), .txt, .md | Audio recording (MediaRecorder, from "Start practice" to "Finish") | **Speaking score** 0–100 (deterministic): pace, pauses, fillers, intonation, volume |
+| Teaching out loud after clicking "Start practice" | Live transcript with word timestamps (Scribe) | **Coaching cards**: one focus card plus up to 3 more, each tagged by category (delivery, coverage, teaching, structure, engagement, or confidence), grounded in a transcript quote and timestamp (or, for a missed core idea, in the lesson plan) |
+| | Delivery metrics: pace, pauses, fillers, pitch, volume | Each card: headline, what happened, why it matters, a line to try instead, and a practice goal |
+| | | Playback of the recording alongside the transcript |
 
 ## Scope
 
@@ -42,7 +42,7 @@ The TA provides only the materials and the practice itself. Audio and the transc
 |---|---|
 | **MVP** | Multi-file materials upload (≤5: pptx, pdf, docx, txt, md) → one deduplicated concept list |
 | **MVP** | One-click "Start practice" → recording + live transcript + live delivery meters; "Finish" → review |
-| **MVP** | AI review: speaking score, content gaps, teaching skills, top priority |
+| **MVP** | AI review: speaking score plus a focus coaching card and up to 3 more, each grounded in a transcript quote or the lesson plan |
 | **Stretch** | Simulated student: ElevenLabs voice agent asks a follow-up; TA's answer is graded |
 | **Stretch** | Live concept checklist that ticks off as the TA covers ideas |
 | **Stretch** | Click a quote in the review to seek the recording to that moment |
@@ -81,40 +81,62 @@ REVIEW       automatic on Finish: POST /api/review { material, transcript, words
 ## AI review pipeline
 
 ```
-                     ┌─► delivery   metrics ───────────────► speaking score (deterministic) + tips (LLM)
-ReviewRequest ───────┼─► content    concepts × transcript ─► coverage per concept (LLM)
-                     └─► teaching   transcript (+ materials) ► rubric scores (LLM)
-                                        │ all three results
+                 ┌─► delivery     wording/clarity moments ──┐
+                 ├─► coverage     concepts × transcript ─────┤
+ReviewRequest ───┼─► teaching     explanation moments ───────┤   (each reviewer: Observation[],
+                 ├─► structure    opening/transitions/close ─┤    no scores — 30s timeout, a
+                 ├─► engagement   questions/examples ────────┤    throw or timeout → [])
+                 └─► confidence   hedging/filler moments ────┘
+                                        │ flatten
                                         ▼
-                                   synthesize ─────────────► summary + top priority (LLM, template fallback)
+                               grounding filter ──► drop any quote not actually in the transcript
+                                        │ (coverage items are plan-grounded, skipped instead)
+                                        ▼
+                                     coach() ──► rank by category, take top 4, write cards (LLM
+                                                 rewrites prose; quote/timestamp always come from
+                                                 the source observation, never the LLM)
+                                        ▼
+                                SessionReview { focus, more[] }
 ```
 
 Plus **step 0**, run at upload rather than at review: `extractConcepts` turns all the uploaded
-files into the concept checklist that the content reviewer grades against. Each concept records
+files into the concept checklist the coverage reviewer grades against. Each concept records
 where it came from (e.g. `week3.pptx · slide 7`).
 
 **Design decisions:**
-- **Several narrow reviewers, not one big prompt.** Each has one job and its own prompt, so each
-  can be tuned and tested alone. They run in parallel, so the wait is only as long as the slowest
-  one.
+- **Six narrow reviewers, not one big prompt.** Each has one job and its own prompt
+  (`ai-review/src/reviewers/*.ts`), so each can be tuned and tested alone. They run in parallel
+  (`Promise.all`), so the wait is only as long as the slowest one.
+- **Reviewers observe, they don't score or rank.** Every reviewer (but `coverage`) returns plain
+  `Observation[]` — a quote, a timestamp, a category, nothing else. No reviewer sees another's
+  output, and none of them score teaching quality on a scale; `coach()` is the only step that
+  ranks or writes final prose.
+- **Every quote is verified before it can become a card.** `isQuoteGrounded()`
+  (`ai-review/src/transcript.ts`) checks each observation's quote actually appears in the
+  transcript (substring match, with a word-overlap fallback) before it reaches `coach()`. An
+  observation that fails this check is dropped, not shown with a caveat.
 - **Numbers come from measurement, judgment from the LLM.** The speaking score is computed
-  (`shared/speakingScore.ts`, the same function the live meter uses). LLMs only judge what needs
-  judgment: coverage, teaching quality, and what to say about the numbers.
+  (`shared/speakingScore.ts`, the same function the live meter uses) — no LLM involved. LLMs only
+  judge what needs judgment: which moments are worth surfacing, and how to phrase a card.
 - **Concepts are extracted once, at upload.** The TA sees what they'll be graded against before
   starting, and every attempt is graded against the same list, so attempts are comparable.
-- **Failures stay contained.** Each reviewer returns `SectionResult` (ok / error / skipped) and has
-  a 30s timeout. One failed call shows an inline error and the rest of the report still renders.
-  No materials means the content section is skipped.
+- **Failures stay contained, quietly.** Each reviewer call is wrapped in a 30s timeout; a throw or
+  timeout collapses to an empty `[]` rather than surfacing an error — the rest of the reviewers'
+  observations still flow into `coach()`. No lesson plan means the coverage reviewer is skipped
+  the same way.
 - **One LLM helper.** Every step calls `completeJson()` in `ai-review/src/llm/client.ts`. OpenAI and
   Llama both use the OpenAI chat API, so `LLM_PROVIDER` switches between them.
-- **Mock mode.** `LLM_PROVIDER=mock` gives each step canned output. The UI can be built with no
-  keys, and it doubles as the demo fallback.
+- **Mock mode.** `LLM_PROVIDER=mock` gives each reviewer canned output and skips the grounding
+  filter. The UI can be built with no keys, and it doubles as the demo fallback.
 
-Prompting rules for every reviewer:
+Prompting rules for every reviewer (`OBSERVATION_RULES` in
+`ai-review/src/reviewers/observation.ts`):
 - Output JSON only.
-- Every judgment cites a transcript quote.
-- Treat the provided metrics as ground truth.
-- Keep the tone encouraging.
+- Every item must quote the transcript verbatim — no paraphrasing.
+- Never reward or penalize the absence of something; only report a moment that's actually there.
+- An empty list is a correct answer when nothing grounded is found.
+- Don't score, rank, summarize, or compare categories — that's `coach()`'s job. At most 3
+  observations per reviewer.
 
 ## Reading lecture files
 

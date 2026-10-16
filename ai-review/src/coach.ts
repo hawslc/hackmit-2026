@@ -9,7 +9,7 @@ import { completeJson } from "./llm/client.ts";
 import { isMock, type ResolvedConfig } from "./llm/config.ts";
 import type { Observation } from "./types.ts";
 
-const MORE_CAP = 4;
+const MORE_CAP = 3;
 
 /** Lower rank = higher priority. */
 const RANK: Record<CoachingCategory, number> = {
@@ -78,7 +78,7 @@ function coachPrompt(selected: Observation[]): { system: string; user: string } 
     .join("\n");
   return {
     system: `You are the lead mentor. You are given a ranked list of grounded observations from a teaching-practice session; #1 is the most important.
-Turn each observation into a coaching card, in the SAME order, but if multiple observations are about the same quote, consolidate them into one card and display the more important category (while making a note of any other feedback on that quote). Do not introduce any claim not present in the observations. Do not invent or alter quotes.
+Turn each observation into a coaching card, in the SAME order, but if multiple observations are about the same quote, consolidate them into one card and display the more important category (while making a note of any other feedback on that quote) and include one less card in the final output. Do not introduce any claim not present in the observations. Do not invent or alter quotes.
 For each card produce:
 - headline: 2–4 words naming the skill
 - whatHappened: one neutral sentence
